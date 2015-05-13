@@ -4,7 +4,7 @@ import math
 
 
 L = 2 # L transmitters
-M = 2 # M relays
+M =2# M relays
 p = 17 # The prime number
 
 Cores = 8 # The number of CPU cores used in parallel computing
@@ -12,18 +12,18 @@ DEBUG_H = False # When this value is True, the channel matrix H is set as certai
 P_MIN = 25
 P_MAX = 40
 P_DEL = 5
-#P_Search_Alg='differential_evolution'
+P_Search_Alg='brute'
 # 'brute', 'TNC', 'anneal', 'brute_fmin', 'brute_fmin_cobyla', 'brute_fmin_beta', 'brute_fmin_cobyla_beta'
 # 'brute_brute'
 #genetic
 #differential_evolution
-brute_number = 60
+brute_number = 100
 brute_fmin_number = 20
 brute_fmin_maxiter = 70
 brute_brute_first_number = 25
 brute_brute_second_number = 25
 
-beta_max = 2
+beta_max = 4
 if mod(brute_number, beta_max) != 0:
     raise Exception('Error: beta=1 will not be included!')
 
@@ -36,8 +36,8 @@ if is_set_H == True:
 is_set_beta = False # set beta for given channel
 if is_set_beta == True:
     set_beta = vector(RR, [1, 1.8])
-iter_H = 80
-batch_H = 8
+iter_H = 8
+batch_H = 1
 
 #This is the key function in terms of rate!!!
 # P is a LxL matrix P_mat

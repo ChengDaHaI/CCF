@@ -102,7 +102,7 @@ def CoF_compute_search_pow_flex(P_con, H_a, is_dual_hop, rate_sec_hop=[], mod_sc
             sum_rate_opt = sum_rate_fmin_cobyla
         #Add differential evolution
         elif P_Search_Alg =="differential_evolution":
-            bounds=((0.1,P_con),)*L
+            bounds=((0,P_con),)*L
             res_brute=optimize.differential_evolution(cof_pow,bounds)
             P_opt=res_brute.x
             sum_rate_opt=-res_brute.fun
@@ -156,6 +156,13 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, ra
             P_brute_opt2 = res_brute2[0]
             sum_rate_brute2 = -res_brute2[1] # negative! see minus sign in cof_pow_beta
             sum_rate_opt = sum_rate_brute2
+        #add differential evolution algorithm
+        elif P_Search_Alg=='differential_evolution':
+            Pranges=((float(beta_max)/brute_number, beta_max), )
+            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges)
+            P_opt=res_brute.x
+            sum_rate_opt=-res_brute.fun
+        #end
         else:
             raise Exception('error: algorithm not supported')
     except:
@@ -337,16 +344,16 @@ if __name__ == "__main__":
     t1 = time.ctime()
     tf1 = time.time()
     if is_alternate == True:
-        dir_name = '/home/chenghai/Research/CoF_Sim/'+str(tf1)+'-'+'alternate'+'-M=L='+str(M)+'-iter_H='+str(iter_H)
+        dir_name = '/home/chenghai/Research/CoF_Sim/'+str(t1)+'-'+'alternate'+'-M=L='+str(M)+'-iter_H='+str(iter_H)
     else:
-        dir_name = '/home/chenghai/Research/CoF_Sim/'+str(tf1)+'-'+P_Search_Alg+'-M=L='+str(M)+'-iter_H='+str(iter_H)
+        dir_name = '/home/chenghai/Research/CoF_Sim/'+str(t1)+'-'+P_Search_Alg+'-M=L='+str(M)+'-iter_H='+str(iter_H)
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
     original_dir = os.getcwd()
     os.chdir(dir_name) # change to the directory where simulation results should be placed
     
     '''First Hop'''
-    if False:
+    if True:
         sum_rate = [0]*len(Pl_con)
         sum_rate_var = [0]*len(Pl_con)
         sum_rate_beta = [0]*len(Pl_con)
@@ -403,7 +410,7 @@ if __name__ == "__main__":
         print 'sum_rate_var_beta: '; print sum_rate_var_beta
     
     '''Dual Hops'''
-    if True:
+    if False:
         sum_rate_fixed_pow_sym_mod = [0]*len(Pl_con)
         sum_rate_fixed_pow_asym_quan = [0]*len(Pl_con)
         sum_rate_sym_mod = [0]*len(Pl_con)

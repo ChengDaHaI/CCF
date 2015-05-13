@@ -31,6 +31,10 @@ def CoF_compute_search_pow_flex(P_con, H_a, is_dual_hop, P_Search_Alg, rate_sec_
             res_cof = optimize.brute(cof_pow, Pranges, Ns=brute_number, full_output=True, finish=None)
             P_opt = res_cof[0]
             sum_rate_opt = -res_cof[1] # negative! see minus sign in cof_pow
+        elif P_Search_Alg == 'fmin_cg':
+            res_cof=optimize.fmin_cg(cof_pow,initial_guess,gtol=1e-4,epsilon=1e-4)
+            P_opt = res_cof[0]
+            sum_rate_opt = -res_cof[1]
         elif P_Search_Alg == 'TNC':
             #res_cof = optimize.minimize(cof_pow, initial_guess, method='TNC', bounds=Pranges, options={'maxiter': 400, 'approx_grad': True})
             #P_opt = list(res_cof.x)
@@ -80,6 +84,57 @@ def CoF_compute_search_pow_flex(P_con, H_a, is_dual_hop, P_Search_Alg, rate_sec_
     #return sum_rate_opt
     return (sum_rate_opt,P_opt)#return tuple,for comparing
 
+@parallel(ncpus=Cores)
+def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_Search_Alg, rate_sec_hop=[], mod_scheme='asym_mod', quan_scheme='asym_quan'):
+    (M, L) = (H_a.nrows(), H_a.ncols())
+    '''
+    def cof_pow_beta(x):
+        power = x[0:L]
+        beta = vector(RR, [1,]+list(x[L:2*L-1]))
+        -CoF_compute_fixed_pow_flex(power, P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, beta)
+    '''
+    if is_fixed_power == False:
+        cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex(x[0:L], P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[L:2*L-1])))
+        Pranges = ((P_con/brute_number, P_con), )*L + ((float(beta_max)/brute_number, beta_max), )
+    else:
+        cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex((P_con,)*L, P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[0:L-1])))
+        Pranges = ((float(beta_max)/brute_number, beta_max), )*(L-1)
+        
+    try:
+        if P_Search_Alg == 'brute':
+            res_cof = optimize.brute(cof_pow_beta, Pranges, Ns=brute_number, full_output=True, finish=None)
+            P_opt = res_cof[0]
+            sum_rate_opt = -res_cof[1] # negative! see minus sign in cof_pow_beta
+        elif P_Search_Alg == 'brute_fmin':
+            res_brute = optimize.brute(cof_pow_beta, Pranges, Ns=brute_fmin_number, full_output=True, finish=None)
+            P_brute_opt = res_brute[0]
+            sum_rate_brute = -res_brute[1] # negative! see minus sign in cof_pow_beta
+            res_fmin = optimize.fmin(cof_pow_beta, P_brute_opt, xtol=1, ftol=0.01, maxiter=brute_fmin_maxiter, full_output=True)
+            P_fmin_opt = res_fmin[0]
+            sum_rate_opt = -res_fmin[1]
+        elif P_Search_Alg == 'brute_brute':
+            res_brute1 = optimize.brute(cof_pow_beta, Pranges, Ns=brute_brute_first_number, full_output=True, finish=None)
+            P_brute_opt1 = res_brute1[0]
+            sum_rate_brute1 = -res_brute1[1] # negative! see minus sign in cof_pow_beta
+            Pranges_brute_2 = tuple([(max(0,P_i-P_con/brute_brute_first_number), min(P_con,P_i+P_con/brute_brute_first_number)) for P_i in P_brute_opt1])
+            res_brute2 = optimize.brute(cof_pow_beta, Pranges_brute_2, Ns=brute_brute_second_number, full_output=True, finish=None)
+            P_brute_opt2 = res_brute2[0]
+            sum_rate_brute2 = -res_brute2[1] # negative! see minus sign in cof_pow_beta
+            sum_rate_opt = sum_rate_brute2
+        #add differential evolution algorithm
+        elif P_Search_Alg=='differential_evolution':
+            #Pranges=[(float(beta_max)/brute_number, beta_max)]
+            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges)
+            P_opt=res_brute.x
+            sum_rate_opt=-res_brute.fun
+        #end
+        else:
+            raise Exception('error: algorithm not supported')
+    except:
+        print 'error in search algorithms'
+        raise
+    return sum_rate_opt
+
 
 #传入P_con,H_a,is_dual_hop,rate_sec_hop等参数
 #计算相同参数下三种算法的运行结果
@@ -89,8 +144,10 @@ def CoF_compute_search_pow_flex(P_con, H_a, is_dual_hop, P_Search_Alg, rate_sec_
 @parallel(ncpus=Cores)
 def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod', quan_scheme='asym_quan'):
     set_random_seed()#避免产生相同信道矩阵
-    #H_a = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
-    H_a=matrix(RR,M,L,[[-0.541978155712295 ,0.740073351426688],[-0.773073785628476 ,0.584325217080305]])
+    H_a = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
+    #H_a=matrix(RR,M,L,[[-0.541978155712295 ,0.740073351426688],[-0.773073785628476 ,0.584325217080305]])
+    #H_a=matrix(RR,M,L,[[ 0.0582433959114153 ,-0.0331203286619994  ,-0.298110577723396],[  0.204499188754200  ,0.516092269060844 ,-0.388103212165450],[ -0.235001703409716 ,0.0189319096867924  ,0.935347565704346]])
+
     print 'First Hop channel matrix H_a:\n',H_a
     if is_dual_hop==True:
         '''
@@ -102,14 +159,15 @@ def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod
             rate_sec_hop[i_h_b] = 0.5*log(1+H_b[i_h_b]**2*P_relay, 2)
         '''
         #MIMO channel
-        #H_b = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
-        H_b = matrix(RR, M, L, [[ 0.806026835557602,-0.267139360752616], [0.455755216914796, 0.590419325969173]])
+        H_b = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
+        #H_b = matrix(RR, M, L, [[ 0.806026835557602,-0.267139360752616], [0.455755216914796, 0.590419325969173]])
         print 'Second Hop channel matrix H_b:\n',H_b
         #产生MIMO信道forwarding rate bounds
         rate_sec_hop=[]
         rate_sec_hop.extend(ComputeSecRate(M,P_relay,H_b))
         
-    Algorithm=['brute','differential_evolution','genetic']
+    #Algorithm=['brute','differential_evolution','genetic']
+    Algorithm=['TNC','differential_evolution','genetic']
     sum_rate_list=[]
     time_list=[]
     '''
@@ -141,10 +199,10 @@ def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod
     return sum_rate_list,time_list
 
 if __name__=='__main__':
-    num_batch=1
+    num_batch=120
     #PI_con=[1023,2047,3071,4095]
-    PI_con=[1023]
-    is_dual_hop=True
+    PI_con=[100,1000,10000]
+    is_dual_hop=False
     sum_rate_brute=[]
     sum_rate_genetic=[]
     sum_rate_differential=[]
@@ -180,31 +238,35 @@ if __name__=='__main__':
     #Rate Comparison
     plot_brute=list_plot(zip(PI_dB,sum_rate_brute), plotjoined=True, marker='o', \
                                   rgbcolor=Color('black'), linestyle="--", \
-                                  legend_label= 'brute force', \
-                                  title = 'Rate Comparison in the First Hop')
-    plot_genetic=list_plot(zip(PI_dB,sum_rate_genetic),plotjoined=True, marker='d', \
+                                  legend_label= 'TNC', \
+                                  title = 'Rate Comparison')
+    plot_differential=list_plot(zip(PI_dB,sum_rate_differential),plotjoined=True, marker='d', \
                                       rgbcolor=Color('blue'), linestyle='-.', \
                                       legend_label = 'differential_evolution')
-    plot_differential=list_plot(zip(PI_dB,sum_rate_differential),plotjoined=True, marker='D', \
+    plot_genetic=list_plot(zip(PI_dB,sum_rate_genetic),plotjoined=True, marker='<', \
                                       rgbcolor=Color('green'), linestyle='-.', \
                                       legend_label = 'genetic')
     plot_compare=plot_brute+plot_genetic+plot_differential
-    plot_compare.axes_labels(['SNR', 'Sum rate(bps)'])
+    plot_compare.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
     plot_compare.set_legend_options(loc='upper left')
-    show(plot_compare)
+    #show(plot_compare)
+    plot_compare.show(gridlines=True)
+    
     #Time Comparison
     plot_brute=list_plot(zip(PI_dB,time_brute), plotjoined=True, marker='o', \
                                   rgbcolor=Color('black'), linestyle="--", \
-                                  legend_label= 'brute force', \
-                                  title = 'Time Comparison in the First Hop')
+                                  legend_label= 'TNC', \
+                                  title = 'Time Comparison')
     plot_differential=list_plot(zip(PI_dB,time_differential),plotjoined=True, marker='d', \
                                       rgbcolor=Color('blue'), linestyle='-.', \
                                       legend_label = 'differential_evolution')
-    plot_genetic=list_plot(zip(PI_dB,time_genetic),plotjoined=True, marker='D', \
+    plot_genetic=list_plot(zip(PI_dB,time_genetic),plotjoined=True, marker='<', \
                                       rgbcolor=Color('green'), linestyle='-.', \
                                       legend_label = 'genetic')
     plot_compare=plot_brute+plot_genetic+plot_differential
-    plot_compare.axes_labels(['SNR', 'time(s)'])
+    plot_compare.axes_labels(['SNR(dB)', 'time(s)'])
     plot_compare.set_legend_options(loc='upper left')
-    show(plot_compare)
+    #show(plot_compare)
+    plot_compare.show(gridlines=True)
     raw_input()
+    

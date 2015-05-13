@@ -25,12 +25,12 @@ def Compare_CF_AF(P_con,is_dual_hop):
     #print 'First Hop channel matrix H_a:\n',H_a
     H_b = matrix.random(RR, 2, 2, distribution=RealDistribution('gaussian', 1))
     #print 'Second Hop channel matrix H_b:\n',H_b
-    P_relay=0.15*P_con#set the P_relay
+    P_relay=1*P_con#set the P_relay
     sum_rate=[0]*2
     rate_sec_hop=[]
-    rate_sec_hop.extend(ComputeSecRate(M,P_relay,H_b))
+    rate_sec_hop.extend(ComputeSecRate(2,P_relay,H_b))
     P_search_Alg='differential_evolution'
-    sum_rate[0],P_opt=CoF_compute_search_pow_flex(P_con,H_a,is_dual_hop,P_search_Alg,rate_sec_hop)
+    sum_rate[0],P_opt=CoF_compute_search_pow_flex(P_con,H_a,is_dual_hop,P_search_Alg,rate_sec_hop,mod_scheme='sym_mod', quan_scheme='sym_quan')
     #P_search_Alg='genetic'
     sum_rate[1]=Compute_AF_rate(P_con,P_relay,H_a,H_b,L=2,M=2)
     return sum_rate
@@ -40,7 +40,7 @@ if __name__=="__main__":
     t1=time.time()
     num_batch=120
     is_dual_hop=True
-    P_I=[1,10,100,1000,10000,100000]
+    P_I=[1,10,100,1000,10000]
     sum_rate_list=[]#save the sum_rate list of two scheme
     CF_rate_list=[]
     AF_rate_list=[]

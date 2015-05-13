@@ -95,7 +95,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                             relay_map_fine_lattices = [0]*M
                             for i_m in range(0, M):
                                 relay_map_fine_lattices[i_m] = trans_compute_fine_lattices[quan_order_list.index(i_m)]
-                            '''
+                            
                             # determine the quantization lattice at the m-th relay
                             relay_quan_fine_lattices = [0]*M
                             for i_m in range(0, M):
@@ -151,7 +151,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                             sum_rate = sum(r)
                             if sum_rate_max < sum_rate:
                                 sum_rate_max = sum_rate
-                            
+                            '''
                     if has_feasible_quan == False:
                         raise Exception('If Q is full rank, then there must be at leat one feasible quantizatioin way. But no one found.')
                 else:
@@ -208,7 +208,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
     elif mod_scheme == 'sym_mod' and quan_scheme == 'sym_quan':
         relay_actual_fine_lattices = list(relay_fine_lattices)
         relay_coarse_lattice = max(trans_coarse_lattices)
-        
+        '''
         # determine the achievable fine lattices at the relays
         for i_m in range(0, M):
             R_m = max(0, 0.5*log(relay_coarse_lattice/relay_actual_fine_lattices[i_m], 2))
@@ -225,8 +225,8 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
         for i_l in range(0, L):
             r[i_l] = max(0, 0.5*log(trans_coarse_lattices[i_l]/trans_fine_lattices[i_l], 2))
         sum_rate = sum(r)
-        #The new!!!!!!!!!!!!!!!!!!!
         '''
+        #The new!!!!!!!!!!!!!!!!!!!
         R=[0]*M#the forwarding rate in relay
         for i_m in range(0, M):
             R[i_m] = max(0, 0.5*log(relay_coarse_lattice/relay_actual_fine_lattices[i_m], 2))
@@ -247,7 +247,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
         rate_scaled=[0]*M
         for i in range(0,M):
             rate_scaled[i]=R[i]
-        #New!!!!
+        # determine the achievable fine lattices at the relays
         for i_m in range(0, M):
             R_m = max(0, 0.5*log(relay_coarse_lattice/relay_actual_fine_lattices[i_m], 2))
             if rate_scaled[i_m] < R_m:
@@ -263,7 +263,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
         for i_l in range(0, L):
             r[i_l] = max(0, 0.5*log(trans_coarse_lattices[i_l]/trans_fine_lattices[i_l], 2))
         sum_rate = sum(r)
-        '''
+        
         return sum_rate
         #return r #return rate tuple
     else:
