@@ -208,7 +208,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
     elif mod_scheme == 'sym_mod' and quan_scheme == 'sym_quan':
         relay_actual_fine_lattices = list(relay_fine_lattices)
         relay_coarse_lattice = max(trans_coarse_lattices)
-        '''
+        
         # determine the achievable fine lattices at the relays
         for i_m in range(0, M):
             R_m = max(0, 0.5*log(relay_coarse_lattice/relay_actual_fine_lattices[i_m], 2))
@@ -263,7 +263,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
         for i_l in range(0, L):
             r[i_l] = max(0, 0.5*log(trans_coarse_lattices[i_l]/trans_fine_lattices[i_l], 2))
         sum_rate = sum(r)
-        
+        '''
         return sum_rate
         #return r #return rate tuple
     else:
@@ -448,7 +448,7 @@ if __name__ == "__main__":
     relay_fine_lattices = [0.5, 0.2]
     trans_coarse_lattices = [1.5, 2.0]
     beta = [1]*2
-    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', beta))
+    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
     # should be 1.792
     
     R = [1, 10]
@@ -456,7 +456,7 @@ if __name__ == "__main__":
     p = 3
     relay_fine_lattices = [0.5, 0.2]
     trans_coarse_lattices = [1.5, 2.0]
-    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', beta))
+    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
     # should be 1.792
 
     R = [1, 1]
@@ -464,6 +464,6 @@ if __name__ == "__main__":
     p = 3
     relay_fine_lattices = [0.5, 0.2]
     trans_coarse_lattices = [1.5, 2.0]
-    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', beta))
+    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
     # should be 1.792
     

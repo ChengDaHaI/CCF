@@ -150,7 +150,7 @@ def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod
 
     print 'First Hop channel matrix H_a:\n',H_a
     if is_dual_hop==True:
-        '''
+
         #parallel channel
         H_b = (matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))).column(0)
         print 'Second Hop channel matrix H_b:\n',H_b
@@ -158,30 +158,25 @@ def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod
         for i_h_b in range(0, M):
             rate_sec_hop[i_h_b] = 0.5*log(1+H_b[i_h_b]**2*P_relay, 2)
         '''
-        #MIMO channel
-        H_b = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
-        #H_b = matrix(RR, M, L, [[ 0.806026835557602,-0.267139360752616], [0.455755216914796, 0.590419325969173]])
-        print 'Second Hop channel matrix H_b:\n',H_b
         #产生MIMO信道forwarding rate bounds
+        H_b = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
+        print 'Second Hop channel matrix H_b:\n',H_b
         rate_sec_hop=[]
         rate_sec_hop.extend(ComputeSecRate(M,P_relay,H_b))
-        
+        '''
     #Algorithm=['brute','differential_evolution','genetic']
-    Algorithm=['TNC','differential_evolution','genetic']
+    #Algorithm=['TNC','differential_evolution','genetic']
+    #Algorithm=['differential_evolution']
     sum_rate_list=[]
     time_list=[]
-    '''
-    #随机产生信道矩阵H_a
-    H_a = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
-    set_random_seed()#避免产生相同信道矩阵
-    '''
-    for P_Search_Alg in Algorithm:
-        print P_Search_Alg,':'
-        t1=time.time()
-        sum_rate,P_opt=CoF_compute_search_pow_flex(P_con,H_a,is_dual_hop,P_Search_Alg,rate_sec_hop,mod_scheme, quan_scheme)
-        t2=time.time()
-        sum_rate_list.append(sum_rate)
-        time_list.append(t2-t1)
+    #for P_Search_Alg in Algorithm:
+    P_Search_Alg='differential_evolution'
+    print P_Search_Alg,':'
+    t1=time.time()
+    sum_rate,P_opt=CoF_compute_search_pow_flex(P_con,H_a,is_dual_hop,P_Search_Alg,rate_sec_hop,mod_scheme, quan_scheme)
+    t2=time.time()
+    sum_rate_list.append(sum_rate)
+    time_list.append(t2-t1)
     #减小种群规模，并行遗传算法取各次结果最优值，缩短运行时间
     '''
     P_Search_Alg='genetic'
@@ -199,10 +194,10 @@ def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod
     return sum_rate_list,time_list
 
 if __name__=='__main__':
-    num_batch=120
+    num_batch=8
     #PI_con=[1023,2047,3071,4095]
     PI_con=[100,1000,10000]
-    is_dual_hop=False
+    is_dual_hop=True
     sum_rate_brute=[]
     sum_rate_genetic=[]
     sum_rate_differential=[]
@@ -217,6 +212,7 @@ if __name__=='__main__':
         print 'When power constraint is %i,time spend: %i s'%(P_con,t2-t1)
         Rate_list=[result_list[i][1][0] for i in range(0,num_batch)]
         Time_list=[result_list[i][1][1] for i in range(0,num_batch)]
+        '''
         #brute
         ratelist=[Rate_list[i][0] for i in range(0,num_batch)]
         sum_rate_brute.append(sum(ratelist)/num_batch)
@@ -232,9 +228,15 @@ if __name__=='__main__':
         sum_rate_genetic.append(sum(ratelist)/num_batch)
         timelist=[Time_list[i][2] for i in range(0,num_batch)]
         time_genetic.append(sum(timelist)/num_batch)
+        '''
+        ratelist=[Rate_list[i][0] for i in range(0,num_batch)]
+        sum_rate_differential.append(sum(ratelist)/num_batch)
+        timelist=[Time_list[i][0] for i in range(0,num_batch)]
+        time_differential.append(sum(timelist)/num_batch)
     #画图
     #表现各算法性能之间的关系
     PI_dB=[10*log10(P_con) for P_con in PI_con]
+    '''
     #Rate Comparison
     plot_brute=list_plot(zip(PI_dB,sum_rate_brute), plotjoined=True, marker='o', \
                                   rgbcolor=Color('black'), linestyle="--", \
@@ -247,11 +249,15 @@ if __name__=='__main__':
                                       rgbcolor=Color('green'), linestyle='-.', \
                                       legend_label = 'genetic')
     plot_compare=plot_brute+plot_genetic+plot_differential
+    '''
+    plot_compare=list_plot(zip(PI_dB,sum_rate_differential),plotjoined=True, marker='d', \
+                                      rgbcolor=Color('blue'), linestyle='-.', \
+                                      legend_label = 'differential_evolution')
     plot_compare.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
     plot_compare.set_legend_options(loc='upper left')
     #show(plot_compare)
     plot_compare.show(gridlines=True)
-    
+    '''
     #Time Comparison
     plot_brute=list_plot(zip(PI_dB,time_brute), plotjoined=True, marker='o', \
                                   rgbcolor=Color('black'), linestyle="--", \
@@ -264,6 +270,10 @@ if __name__=='__main__':
                                       rgbcolor=Color('green'), linestyle='-.', \
                                       legend_label = 'genetic')
     plot_compare=plot_brute+plot_genetic+plot_differential
+    '''
+    plot_compare=list_plot(zip(PI_dB,time_differential),plotjoined=True, marker='d', \
+                                      rgbcolor=Color('blue'), linestyle='-.', \
+                                      legend_label = 'differential_evolution')
     plot_compare.axes_labels(['SNR(dB)', 'time(s)'])
     plot_compare.set_legend_options(loc='upper left')
     #show(plot_compare)
