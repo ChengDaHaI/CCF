@@ -34,8 +34,8 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
     #incorrect code about list
     #per_beta=[per_beta_s,per_beta_c]
     #beta=[beta_s,beta_c]
-    per_beta=copy(per_beta_s.extend(per_beta_c))
-    beta=copy(beta_s.extend(beta_c))
+    per_beta=per_beta_s+per_beta_c
+    beta=beta_s+beta_c
     #compute the total rate in sources
     rate_total=0#the total rate in sources
     for i in range(0,L):
@@ -46,8 +46,8 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
     for i in range(0,2*L-1):
         rate_piece[i]=log(beta[i]/beta[i+1],2)
     #produce subset list
-    subset_list=list(powerset(range(1,L+1)))
-    set_L=set(range(1,L+1))
+    subset_list=list(powerset(range(0,L)))
+    set_L=set(range(0,L))
     #conditional entropy list
     conditional_entropy=[0]*(pow(2,L)-1)
     #coefficient of rate pieces
@@ -72,17 +72,18 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
                 index=colum.index(per_c[j-L])
                 colum.pop(index)
             sub_A=A[row,colum]
-            rank=rank(sub_A)
-            if rank>rank(A):
+            rank_value=0
+            rank_value=rank(sub_A)
+            if rank_value>rank(A):
                 raise Exception('sub-matrix rank cannot great than the original matrix!')
-            conditional_entropy[i-1]-=rank*rate_piece[j]
+            conditional_entropy[i-1]-=rank_value*rate_piece[j]
             #record the coefficient of rate pieces
             #that is also the i row of transform matrix between  
             #conditional_entropy list and rate_piece list
             if j<=L-1:
-                piece_coefficient.append(j+1-rank)
+                piece_coefficient.append(j+1-rank_value)
             elif j>L-1:
-                piece_coefficient.append(2*L-1-j-rank)
+                piece_coefficient.append(2*L-1-j-rank_value)
         entropy_coefficient[i-1]=piece_coefficient
         
     return conditional_entropy,entropy_coefficient
@@ -99,22 +100,26 @@ def Vertex_RatePiece_Coefficient(coefficient_list):
     for weight_order in permutations(list(range(1,L+1))):
         weight_list=list(weight_order)
         vertex_rate_list=[0]*L#a vertex rate coordinates list
-        for i in range(L):
-            subset_Te=weight_list[0:i]
-            index1=subset_list.index(subset_Te)-1#subset_list contain zero subset
-            index2=subset_list.index(subset_Te.pop(-1))-1#subset_list contain zero subset
-            if i==0:
+        for i in range(1,L+1):
+            subset_Te=range(1,L+1)[0:i]
+            index1=subset_list.index(tuple(subset_Te))-1#subset_list contain none subset
+            if i==1:
                # vertex_rate_list[i]=entropy_list[index1]
-               vertex_rate_list[i]=coefficient_list[index1]
+               vertex_rate_list[i-1]=coefficient_list[index1]
             else:
+                #index2=subset_list.index(tuple(subset_Te.pop(-1)))-1#subset_list contain none subset
+                subset_Te.pop(-1)
+                index2=subset_list.index(tuple(subset_Te))-1
                 #subtraction of element in list
-                vertex_rate_list[i]=list(map(lambda x: x[0]-x[1],zip(coefficient_list[index1],coefficient_list[index2])))
+                vertex_rate_list[i-1]=list(map(lambda x: x[0]-x[1],zip(coefficient_list[index1],coefficient_list[index2])))
                 #v = list(map(lambda x: x[0]-x[1], zip(v2, v1)))
         ordered_rate_list=[0]*L
         for i in range(L):
             #there is a permutation between vertex_rate_list and the true vertex rate list
-            ordered_rate_list[weight_list[i]]=vertex_rate_list[i]
-        vertex_list.extend(ordered_rate_list)
+            ordered_rate_list[weight_list[i]-1]=vertex_rate_list[i]
+        temp=[]
+        temp.extend(ordered_rate_list)
+        vertex_list.extend(temp)
     
     return vertex_list
     
