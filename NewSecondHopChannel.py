@@ -39,7 +39,7 @@ def ComputeSecRate(M,P_relay,H_b):
     
 if  __name__=="__main__":
     M=3
-    P_relay=5
+    P_relay=25
     #set_random_seed(1)
     H_b= matrix.random(RR, M,M, distribution=RealDistribution('gaussian', 1))
     constraint_list=ComputeSecRate(M, P_relay, H_b)

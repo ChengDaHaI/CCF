@@ -2,7 +2,7 @@
 from CoF_basic import *
 #from CoF_arb import CoF_compute_search_pow_flex 
 from CoF_LLL import CoF_compute_fixed_pow_flex
-from NewSecondHoP import ComputeSecRate
+from NewSecondHopChannel import ComputeSecRate
 from sage.all import *
 from scipy import optimize
 import time
@@ -150,7 +150,6 @@ def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod
 
     print 'First Hop channel matrix H_a:\n',H_a
     if is_dual_hop==True:
-
         #parallel channel
         H_b = (matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))).column(0)
         print 'Second Hop channel matrix H_b:\n',H_b
@@ -196,7 +195,7 @@ def CoF_compare_algorithm(P_con,is_dual_hop,rate_sec_hop=[],mod_scheme='asym_mod
 if __name__=='__main__':
     num_batch=8
     #PI_con=[1023,2047,3071,4095]
-    PI_con=[100,1000,10000]
+    PI_con=[1000]
     is_dual_hop=True
     sum_rate_brute=[]
     sum_rate_genetic=[]

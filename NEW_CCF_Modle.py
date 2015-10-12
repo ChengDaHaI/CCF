@@ -5,9 +5,9 @@ Email: chenghai@shanghaitech.edu.cn
 The ShangHaiTech University
 '''
 from sage.all import *
-from CoF_basic import *
+#from CoF_basic import *
 import math
-
+from NEW_basic import *
 from itertools import chain, combinations, permutations
 
 #generate the subsets
@@ -44,7 +44,7 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
     #suppose there isn't two same lattice.
     rate_piece=[0]*(2*L-1)#the rate pieces divided by nested lattices
     for i in range(0,2*L-1):
-        rate_piece[i]=log(beta[i]/beta[i+1],2)
+        rate_piece[i]=0.5*log(beta[i]/beta[i+1],2)
     #produce subset list
     subset_list=list(powerset(range(0,L)))
     set_L=set(range(0,L))
@@ -119,7 +119,7 @@ def Vertex_RatePiece_Coefficient(coefficient_list):
             ordered_rate_list[weight_list[i]-1]=vertex_rate_list[i]
         temp=[]
         temp.extend(ordered_rate_list)
-        vertex_list.extend(temp)
+        vertex_list.append(temp)
     
     return vertex_list
     
@@ -130,7 +130,7 @@ def Vertex_RatePiece_Coefficient(coefficient_list):
 #input: shaping lattice beta_s, coding lattice beta_c, vertex rate coefficient list
 #output: relay's lattice tuple list 
 def Relay_Compress_Lattice_Tuple(beta_s,beta_c,vertex_rate_coefficient_list):
-    beta=[beta_s,beta_c]
+    beta=beta_s+beta_c
     vertex_mount=len(vertex_rate_coefficient_list)
     if vertex_mount!=factorial(L):
         raise Exception('there should be L s factorial vertex')
@@ -141,14 +141,11 @@ def Relay_Compress_Lattice_Tuple(beta_s,beta_c,vertex_rate_coefficient_list):
         vertex_coefficient_list=vertex_rate_coefficient_list[i]
         for j in range(L):
             index1=vertex_coefficient_list[j].index(1)#the first nonzero element in the coefficient list
-            index2=copy(index1)
-            while vertex_coefficient_list[j][index2+1]==1:
-                index2+=1
-            '''
-            test_list=vertex_coefficient_list[j][index2+1:]
-            k=0
-            while test_list[k]==0:
-            '''
+            #index2=copy(index1)
+            temp=copy(vertex_coefficient_list[j])
+            temp.reverse()
+            index2=temp.index(1)
+            index2=2*L-2-index2
             if index1==index2:
                 relay_lattice_pair[j]=(beta[index1],beta[1+index1])
             else:
@@ -158,14 +155,14 @@ def Relay_Compress_Lattice_Tuple(beta_s,beta_c,vertex_rate_coefficient_list):
     return relay_lattice_pair_list
     
 if __name__=='__main__':
-    L=2
-    A=Matrix([[1,2],[1,1]])
-    beta_s=[2.5,2.0]
-    beta_c=[1.5,1.0]
-    per_s=[0,1]
-    per_c=[0,1]
+    L=3
+    A=Matrix([[1,2,3],[1,2,2],[2,1,3]])#matrix A must be full-rank
+    beta_s=[2.5,2.0,1.8]
+    beta_c=[1.5,1.0,0.8]
+    per_s=[0,2,1]
+    per_c=[0,1,2]
     conditional_entropy_list,entropy_coefficient_list=Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A)
     vertex_rate_coefficient_list                                    =Vertex_RatePiece_Coefficient(entropy_coefficient_list)
     relay_lattice_pair_list                                              =Relay_Compress_Lattice_Tuple(beta_s,beta_c,vertex_rate_coefficient_list)
-    
+    print relay_lattice_pair_list
     
