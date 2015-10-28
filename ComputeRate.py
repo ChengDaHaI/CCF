@@ -204,7 +204,7 @@ if __name__=='__main__':
     time_genetic=[]
     time_differential=[]
     for P_con in PI_con:
-        P_relay=0.25*P_con
+        P_relay=0.5*P_con
         t1=time.time()
         result_list=list(CoF_compare_algorithm([(P_con, is_dual_hop)]*num_batch))
         t2=time.time()

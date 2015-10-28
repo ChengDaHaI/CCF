@@ -12,7 +12,7 @@ def Compare_Pow_Beta(P_con,is_dual_hop):
     set_random_seed()
     H_a = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
     #print 'First Hop channel matrix H_a:\n',H_a
-    H_b = matrix.random(RR, 2, M, distribution=RealDistribution('gaussian', 1)).column(0)
+    H_b = matrix.random(RR, L, M, distribution=RealDistribution('gaussian', 1)).column(0)
     #print 'Second Hop channel matrix H_b:\n',H_b
     P_relay=0.5*P_con#set the P_relay
     sum_rate=[0]*2
@@ -31,9 +31,9 @@ def Compare_Pow_Beta(P_con,is_dual_hop):
 if __name__=="__main__":
     print 'Simulation Start!\n'
     t1=time.time()
-    num_batch=120
-    is_dual_hop=False
-    P_I=[1,10,100,1000,10000,100000]
+    num_batch=8
+    is_dual_hop=True
+    P_I=[1,10,100,1000]
     sum_rate_list=[]#save the sum_rate list of two scheme
     Power_rate_list=[]
     Beta_rate_list=[]

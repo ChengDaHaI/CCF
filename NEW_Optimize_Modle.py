@@ -23,16 +23,24 @@ def Linear_Program(entropy_coefficient_list,secChannel_constiant,source_rate_upb
         elif i>=L:
             C[i]=-(2*L-1-i)#Attention, the real object function coefficient should be positive
     # source rate is the coefficient list of rate pieces
-    SourseRate=[[0]*(2*L-1)]*L
+    SourseRate=[]
+    for i in range(L):
+        SourseRate.extend([[0]*(2*L-1)])
     for i in range(0,L):
         #piece_mount=per_c[i]-per_s[i]
         for j in range(0,2*L-1):
             #SourseRate[i][j]=[0]*(2*L-1)
-            if j>=per_s[i]-1&j<=per_c[i]-1:
+            if (j>=per_s[i])&(j<=per_c[i]+2):
                 SourseRate[i][j]=1
     #construct the linear programming equation
-    A_ConstriantMatrix=SourseRate+entropy_coefficient_list
-    b_ConstriantVector=source_rate_upbound_list+secChannel_constiant
+
+    channel_mode="parrallel"
+    if channel_mode=="parrallel":
+        A_ConstriantMatrix=SourseRate+entropy_coefficient_list[0:M]
+        b_ConstriantVector=source_rate_upbound_list+secChannel_constiant[0:M]
+    elif channel_mode=="MAC":
+        b_ConstriantVector=source_rate_upbound_list+secChannel_constiant
+        A_ConstriantMatrix=SourseRate+entropy_coefficient_list
     # the default bound is nonnegative, that is (0,None)
     bound=[0]*(2*L-1)
     for i in range(2*L-1):
