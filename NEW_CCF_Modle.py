@@ -23,12 +23,13 @@ def powerset(iterable):
 #Compute the relay forwarding rates constraints.
 #input:the first four lists and the last one matrix
 #output: the conditional entropy list
-def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
-    if len(beta_c)!=len(beta_s):
-        raise Exception('beta_c and beta_s should have the same length')
-    elif len(beta_c)!=L:
-        raise Exception('beta_c and beta_s should have %i elements'%L)
+def Relay_Forward_Rate(per_s,per_c,A):
+    if len(per_c)!=len(per_s):
+        raise Exception('per_c and per_s should have the same length')
+    elif len(per_c)!=L:
+        raise Exception('per_c and per_s should have %i elements'%L)
     #get  beta_s and beta_c after the permutation operation
+    '''
     per_beta_s=[beta_s[per_s[i]] for i in per_s]
     per_beta_c=[beta_c[per_c[i]] for i in per_c]
     #incorrect code about list
@@ -45,11 +46,14 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
     rate_piece=[0]*(2*L-1)#the rate pieces divided by nested lattices
     for i in range(0,2*L-1):
         rate_piece[i]=0.5*log(beta[i]/beta[i+1],2)
+    '''
     #produce subset list
     subset_list=list(powerset(range(0,L)))
     set_L=set(range(0,L))
+    '''
     #conditional entropy list
     conditional_entropy=[0]*(pow(2,L)-1)
+    '''
     #coefficient of rate pieces
     entropy_coefficient=[0]*(pow(2,L)-1)
     
@@ -57,7 +61,9 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
     #then calculate the conditional entropy
     for i in range(1,len(subset_list)):
         piece_coefficient=[]
+        '''
         conditional_entropy[i-1]=rate_total
+        '''
         subset=set(subset_list[i])
         complement_set=set_L.difference(subset)
         row=[]#sub-matrix row index
@@ -76,7 +82,9 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
             rank_value=rank(sub_A)
             if rank_value>rank(A):
                 raise Exception('sub-matrix rank cannot great than the original matrix!')
+            '''
             conditional_entropy[i-1]-=rank_value*rate_piece[j]
+            '''
             #record the coefficient of rate pieces
             #that is also the i row of transform matrix between  
             #conditional_entropy list and rate_piece list
@@ -85,9 +93,10 @@ def Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A):
             elif j>L-1:
                 piece_coefficient.append(2*L-1-j-rank_value)
         entropy_coefficient[i-1]=piece_coefficient
-        
+    '''
     return conditional_entropy,entropy_coefficient
-
+    '''
+    return entropy_coefficient
 
 #given the conditional entropy piece rate coefficient list
 #find all valid  vertex for the polytope     
@@ -161,8 +170,8 @@ if __name__=='__main__':
     beta_c=[1.5,1.0,0.8]
     per_s=[0,2,1]
     per_c=[0,1,2]
-    conditional_entropy_list,entropy_coefficient_list=Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A)
-    vertex_rate_coefficient_list                                    =Vertex_RatePiece_Coefficient(entropy_coefficient_list)
-    relay_lattice_pair_list                                              =Relay_Compress_Lattice_Tuple(beta_s,beta_c,vertex_rate_coefficient_list)
+    entropy_coefficient_list        =Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A)
+    vertex_rate_coefficient_list =Vertex_RatePiece_Coefficient(entropy_coefficient_list)
+    relay_lattice_pair_list           =Relay_Compress_Lattice_Tuple(beta_s,beta_c,vertex_rate_coefficient_list)
     print relay_lattice_pair_list
     
