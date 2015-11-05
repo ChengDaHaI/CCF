@@ -32,22 +32,26 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
                     Max_New_sum_rate=New_sum_rate_opt
         New_sum_rate_opt=Max_New_sum_rate
     elif per_search==False: 
-        global per_s, per_c
-        (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c)
+        '''
+        #global per_s, per_c
+        #(beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c)
+        '''
+        #perform two permutation search before differential evolution operation
+        (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay)
     t2=time.time()
     sum_rate_opt=CoF_compute_search_pow_flex_beta(P_con,H_a,True,True,P_Search_Alg,rate_sec_hop,'asym_mod','asym_quan')
     t3=time.time()
     return New_sum_rate_opt, sum_rate_opt,(t2-t1),(t3-t2)
 
 if __name__=="__main__":
-    num_batch=8
+    num_batch=1
     sum_rate=[]
     New_sum_rate=[]
     New_sum_time=[]
     sum_time=[]
     #ratelist
     #result_list=[]
-    PI_con=[10,100,1000,1000]
+    PI_con=[10,100,1000,10000]
     print 'Simulation Starts!\n'
     for Pi in PI_con:
         t1=time.time()

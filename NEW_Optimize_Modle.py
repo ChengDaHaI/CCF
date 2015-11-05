@@ -9,8 +9,10 @@ from NEW_CCF_Modle import Relay_Forward_Rate
 from NewSecondHopChannel import ComputeSecRate
 from scipy import optimize
 from CoF_LLL import Find_A_and_Rate
-import math
 from NEW_basic import *
+import math
+import time
+import itertools
 
 #the varables to optimize are the all rate piece beta1~2L-1
 #per_s is [1,,,L]'s permutation, per_c is [L+1,2*L]'s permutation
@@ -33,7 +35,6 @@ def Linear_Program(entropy_coefficient_list,secChannel_constiant,source_rate_upb
             if (j>=per_s[i])&(j<=per_c[i]+2):
                 SourseRate[i][j]=1
     #construct the linear programming equation
-
     channel_mode="parrallel"
     if channel_mode=="parrallel":
         A_ConstriantMatrix=SourseRate+entropy_coefficient_list[0:M]
@@ -47,7 +48,7 @@ def Linear_Program(entropy_coefficient_list,secChannel_constiant,source_rate_upb
         bound[i]=(0, None)
     bound=tuple(bound)
     result=optimize.linprog(C, A_ub=A_ConstriantMatrix, b_ub=b_ConstriantVector, bounds=bound, options={"disp": False})
-    print result.x
+    #print result.x
     return result
 
 #compute the source rate upbound and matrix A when given variable beta
@@ -90,22 +91,57 @@ def CCF_fix_pow_sourceRate_upbound(P_con,H_a,beta=[]):
 
 def CCF_sumrate_compute(betaScale, H_a, H_b, P_con, P_relay, per_s, per_c):
     #compute the source rate upbound and matrix A
-    source_rate_upbound_list, A                                 =CCF_fix_pow_sourceRate_upbound([P_con]*L,H_a,betaScale)
-    #compute the coditional entropy and the coefficient of rate pieces
-    conditional_entropy_list,entropy_coefficient_list=Relay_Forward_Rate(beta_s,beta_c,per_s,per_c,A)
+    source_rate_upbound_list, A  =CCF_fix_pow_sourceRate_upbound([P_con]*L,H_a,betaScale)
+    #compute the coefficient of rate pieces of the coditional entropy 
+    entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
     #the second hop channel capacity constriant
     SecChannel_constiant=ComputeSecRate(L,P_relay,H_b)
+    #test program running time cost
+    t1=time.time()
     Res=Linear_Program(entropy_coefficient_list,SecChannel_constiant,source_rate_upbound_list,per_s,per_c)
+    t2=time.time()
+    t=t2-t1
     #x=Res.x
     #fun=Res.fun
     #return the optimizer and the object value(the real object value should be -Res.fun)
     return Res.fun
+
+#perform two permutation search before differential evolution operation
+def CCF_new_sumrate_func(betaScale, H_a, H_b, P_con, P_relay):
+    #compute the source rate upbound and matrix A
+    source_rate_upbound_list, A  =CCF_fix_pow_sourceRate_upbound([P_con]*L,H_a,betaScale)
+    #the second hop channel capacity constriant
+    SecChannel_constiant=ComputeSecRate(L,P_relay,H_b)
+    #test program running time cost
+    Max_sumrate=0
+    t1=time.time()
+    for shape_order in itertools.permutations(list(range(0, L)), L):
+            per_s=list(shape_order)
+            for code_order in itertools.permutations(list(range(0, L)), L):
+                per_c=list(code_order)
+                #compute the coefficient of rate pieces of the coditional entropy 
+                entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
+                Res=Linear_Program(entropy_coefficient_list,SecChannel_constiant,source_rate_upbound_list,per_s,per_c)
+                #(beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c)
+                if Max_sumrate<-Res.fun:
+                    Max_sumrate=-Res.fun
+    t2=time.time()
+    t=t2-t1
+    return Max_sumrate
     
-def RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c):
+def RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay):
+    '''
     CCF_beta_func=lambda x: CCF_sumrate_compute(vector(RR, [1,]+list(x[0:L-1])), H_a, H_b, P_con, P_relay, per_s, per_c)
+    '''
+    #perform differential evolution after two permutation search
+    CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, [1,]+list(x[0:L-1])), H_a, H_b, P_con, P_relay)
     Pranges=((0.1,betaScale_max),)*(L-1)
     if P_Search_Alg=='differential_evolution':
-        ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges)
+        #test program running time cost
+        t1=time.time()
+        ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges,maxiter=30)
+        t2=time.time()
+        t=t2-t1
         beta_opt=ResSearch.x
         sum_rate_opt=-ResSearch.fun
     else:

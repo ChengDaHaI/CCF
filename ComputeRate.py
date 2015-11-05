@@ -126,7 +126,7 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
             #Pranges=[(float(beta_max)/brute_number, beta_max)]
             #test program running time cost
             t1=time.time()
-            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges)
+            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges,maxiter=10)
             t2=time.time()
             t=t2-t1
             P_opt=res_brute.x
