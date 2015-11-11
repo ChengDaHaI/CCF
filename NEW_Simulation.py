@@ -17,7 +17,7 @@ import itertools
 @parallel(ncpus=Cores)
 def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     set_random_seed()
-    set_HaHb=True
+    set_HaHb=False
     if set_HaHb==True:
         H_a=matrix(RR, M, L, [[ 0.653788152865518, 0.104195594252425, 0.640680607359693],\
                     [-0.910876780759478, 0.448676022614346, -0.663944458735054],\
@@ -69,7 +69,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         #global per_s, per_c
         (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c)
         '''
-        #perform two permutation search before differential evolution operation
+        #compute two permutation after differential evolution operation
         (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay)
         
     t2=time.time()
@@ -85,7 +85,7 @@ if __name__=="__main__":
     sum_time=[]
     #ratelist
     #result_list=[]
-    PI_con=[10]
+    PI_con=[1000]
     print 'Simulation Starts!\n'
     for Pi in PI_con:
         t1=time.time()

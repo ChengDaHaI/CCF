@@ -96,6 +96,9 @@ def CCF_sumrate_compute(betaScale, H_a, H_b, P_con, P_relay, per_s, per_c):
     #compute the coefficient of rate pieces of the coditional entropy 
     entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
     #the second hop channel capacity constriant
+    '''
+    There is something wrong with the following function at L (channel mode)
+    '''
     SecChannel_constiant=ComputeSecRate(L,P_relay,H_b)
     #test program running time cost
     t1=time.time()
@@ -109,7 +112,7 @@ def CCF_sumrate_compute(betaScale, H_a, H_b, P_con, P_relay, per_s, per_c):
 
 #perform two permutation search before differential evolution operation
 #but it seems to fail !!!
-def CCF_new_sumrate_func(betaScale, H_a, H_b, P_con, P_relay):
+def CCF_new_sumrate_func(betaScale, H_a, H_b, P_con, P_relay,per_c):
     #compute the source rate upbound and matrix A
     source_rate_upbound_list, A  =CCF_fix_pow_sourceRate_upbound([P_con]*L,H_a,betaScale)
     #the second hop channel capacity constriant
@@ -117,8 +120,8 @@ def CCF_new_sumrate_func(betaScale, H_a, H_b, P_con, P_relay):
     #test program running time cost
     Max_sumrate=0
     t1=time.time()
-    '''
     #=======#
+    #compute the proper nested shaping lattice order from the betaScale
     beta=copy.copy(betaScale)
     beta=list(beta)
     per_s=[]
@@ -129,6 +132,9 @@ def CCF_new_sumrate_func(betaScale, H_a, H_b, P_con, P_relay):
         per_s.append(max_beta_index)
         beta[max_beta_index]=0
     per_s.reverse()
+    #we can move the block outside
+    '''
+    #compute the proper coding lattice order
     H_a_col_min=[]
     H_a_trans=H_a.transpose()
     H_a_trans=list(H_a_trans)
@@ -143,12 +149,11 @@ def CCF_new_sumrate_func(betaScale, H_a, H_b, P_con, P_relay):
         H_a_colmin_max_index=H_a_col_min.index(H_a_colmin_max)
         per_c.append(H_a_colmin_max_index)
         H_a_col_min[H_a_colmin_max_index]=0
+    '''
     #compute the coefficient of rate pieces of the coditional entropy 
     entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
     Res=Linear_Program(entropy_coefficient_list,SecChannel_constiant,source_rate_upbound_list,per_s,per_c)
     #(beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c)
-    if Max_sumrate<-Res.fun:
-        Max_sumrate=-Res.fun
     '''
     #compute the proper coding lattice order
     H_a_col_min=[]
@@ -167,33 +172,45 @@ def CCF_new_sumrate_func(betaScale, H_a, H_b, P_con, P_relay):
         H_a_col_min[H_a_colmin_max_index]=0
     for shape_order in itertools.permutations(list(range(0, L)), L):
             per_s=list(shape_order)
-            '''
-            for code_order in itertools.permutations(list(range(0, L)), L):
-                per_c=list(code_order)
-            '''
             #compute the coefficient of rate pieces of the coditional entropy 
             entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
             Res=Linear_Program(entropy_coefficient_list,SecChannel_constiant,source_rate_upbound_list,per_s,per_c)
             #(beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c)
             if Max_sumrate<-Res.fun:
                 Max_sumrate=-Res.fun
+    '''
     #========#
     t2=time.time()
     t=t2-t1
-    return Max_sumrate
+    return Res.fun
     
-def RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c):
-    
+def RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay):
+    '''
     CCF_beta_func=lambda x: CCF_sumrate_compute(vector(RR, [1,]+list(x[0:L-1])), H_a, H_b, P_con, P_relay, per_s, per_c)
     '''
-    #perform differential evolution after two permutation search
-    CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, [1,]+list(x[0:L-1])), H_a, H_b, P_con, P_relay)
-    '''
+    #compute the proper coding lattice order
+    H_a_col_min=[]
+    H_a_trans=H_a.transpose()
+    H_a_trans=list(H_a_trans)
+    for i in range(L):
+        for j in range(L):
+            temp=math.fabs(H_a_trans[i][j])
+            H_a_trans[i][j]=copy.copy(temp)
+        H_a_col_min.append(min(H_a_trans[i]))
+    per_c=[]
+    for i in range(L):
+        H_a_colmin_max=max(H_a_col_min)
+        H_a_colmin_max_index=H_a_col_min.index(H_a_colmin_max)
+        per_c.append(H_a_colmin_max_index)
+        H_a_col_min[H_a_colmin_max_index]=0
+    #perform differential evolution before computing two permutation 
+    CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, [1,]+list(x[0:L-1])), H_a, H_b, P_con, P_relay,per_c)
+    
     Pranges=((0.1,betaScale_max),)*(L-1)
     if P_Search_Alg=='differential_evolution':
         #test program running time cost
         t1=time.time()
-        ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges,strategy="best1bin",popsize=20,maxiter=30)
+        ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges,strategy="best1bin",maxiter=10)
         t2=time.time()
         t=t2-t1
         beta_opt=ResSearch.x
