@@ -69,6 +69,7 @@ def Relay_Forward_Rate(per_s,per_c,A):
         row=[]#sub-matrix row index
         row.extend(list(complement_set))
         colum=[]#sub-matrix colum index
+        rank_value=0
         for j in range(0,2*L-1):
             if j<=L-1:
                 #lattice_s=per_beta[j]
@@ -78,7 +79,6 @@ def Relay_Forward_Rate(per_s,per_c,A):
                 index=colum.index(per_c[j-L])
                 colum.pop(index)
             sub_A=A[row,colum]
-            rank_value=0
             rank_value=rank(sub_A)
             if rank_value>rank(A):
                 raise Exception('sub-matrix rank cannot great than the original matrix!')
