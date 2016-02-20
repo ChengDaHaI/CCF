@@ -10,7 +10,7 @@ per_c=[2,1,0]
 #P_con=1000
 k_P_ratio=0.25
 betaScale_max=4
-Cores=8
+Cores=20
 SearchAlgorithm="differential_evolution"
 #H_a=matrix.random(RR, L, M, distribution=RealDistribution('gaussian', 1))
 #produce the second channel matrix

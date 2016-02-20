@@ -62,12 +62,11 @@ if __name__=="__main__":
     #ratelist
     #result_list=[]
     #PI_con=[10**1,10**1.5,10**2,10**2.5,10**3,10**3.5,10**4]
-    PI_con=[10**2,10**2.5,10**3,10**3.5]
+    PI_con=[10**2,10**2.2,10**2.4,10**2.6,10**2.8,10**3]
     print 'Simulation Starts!\n'
+    t1=time.time()
     for Pi in PI_con:
-        t1=time.time()
         result_list=list(CCF_Model_Comparison([(SearchAlgorithm,Pi,k_P_ratio*Pi)]*num_batch))
-        t2=time.time()
         New_Rate_list=[result_list[i][1][0] for i in range(0,num_batch)]
         Rate_list=[result_list[i][1][1] for i in range(0,num_batch)]
         New_time_list=[result_list[i][1][2] for i in range(0,num_batch)]
@@ -81,6 +80,7 @@ if __name__=="__main__":
         New_sum_time.append(sum(New_timelist)/num_batch)
         timelist=[time_list[i] for i in range(0,num_batch)]
         sum_time.append(sum(timelist)/num_batch)
+    t2=time.time()
     print 'Total Time Cost: ' ,(t2-t1)
     print 'New CCF Model Time Cost:' , New_sum_time
     print 'CCF Model Time Cost:' , sum_time
@@ -96,6 +96,6 @@ if __name__=="__main__":
     plot_new_rate.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
     plot_new_rate.set_legend_options(loc='upper left')
     plot_compare=plot_new_rate+plot_rate
-    #plot_compare.save("/home/chenghai/pictures/foo1.png")
-    show(plot_compare)
+    plot_compare.save("/home/chenghai/Pictures/Results/foo2.png")
+    plot_compare.show()
     raw_input()
