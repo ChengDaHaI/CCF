@@ -95,7 +95,7 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
     '''
     if is_fixed_power == False:
         cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex(x[0:L], P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[L:2*L-1])))
-        Pranges = ((P_con/brute_number, P_con), )*L + ((float(beta_max)/brute_number, beta_max), )
+        Pranges = ((P_con/brute_number, P_con), )*L + ((float(beta_max)/brute_number, beta_max), )*(L-1)
     else:
         cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex((P_con,)*L, P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[0:L-1])))
         Pranges = ((float(beta_max)/brute_number, beta_max), )*(L-1)
@@ -126,11 +126,13 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
             #Pranges=[(float(beta_max)/brute_number, beta_max)]
             #test program running time cost
             t1=time.time()
-            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges,maxiter=10)
+            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges,maxiter=10,disp=True)
             t2=time.time()
             t=t2-t1
             P_opt=res_brute.x
+            print 'optimal beta and source power(original)', P_opt
             sum_rate_opt=-res_brute.fun
+            print 'maximum sum source rate(original)', sum_rate_opt
         #end
         else:
             raise Exception('error: algorithm not supported')

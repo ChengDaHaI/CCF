@@ -103,7 +103,12 @@ def CoF_compute_fixed_pow_flex(P_t, P_con, is_return_A, H_a, is_dual_hop, rate_s
                 
                 # check whether the second-hop constraint rate_sec_hop can support the first-hop rate r
                 try:
-                    support_rates = RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A_best_LLL, rate_sec_hop, mod_scheme, quan_scheme))
+                    support_result = second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A_best_LLL, rate_sec_hop, mod_scheme, quan_scheme)
+                    support_rates = support_result[0]
+                    print 'source rate: ', support_result[1]
+                    print 'shaping lattice: ', support_result[2]
+                    print 'coding lattice: ', support_result[3]
+                    
                 except:
                     print 'error in second hop'
                     raise

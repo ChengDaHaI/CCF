@@ -12,7 +12,7 @@ from math import log10, fabs
 import time
 import copy
 import itertools
-
+import matplotlib.pyplot as plt
 
 @parallel(ncpus=Cores)
 def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
@@ -22,39 +22,48 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         H_a=matrix(RR, M, L, [[ 0.653788152865518, 0.104195594252425, 0.640680607359693],\
                     [-0.910876780759478, 0.448676022614346, -0.663944458735054],\
                     [ 0.509045047253757, 0.144818456132016, 0.950432703521713]])
+        '''
         H_b=matrix(RR, M, L, [[ -0.844849781483391 , -0.678659125685948  ,-0.484271670880304],\
                 [-0.0729932845848398   ,0.609420751701606   ,0.846395865838560],\
-                [ 0.0645367208093419  ,-0.205375774175623 , -0.480734935684002]]).column(1)
+                [ 0.0645367208093419  ,-0.205375774175623 , -0.480734935684002]])
+        '''
+        H_b=matrix(RR, 1, L, [ -0.844849781483391 , -0.678659125685948  ,-0.484271670880304])
     else:   
         H_a = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
         #second hop channel is parallel 
         H_b = (matrix.random(RR, 1, M, distribution=RealDistribution('gaussian', 1)))
+        print H_a
+    #second hop channel capacity, 2**L-1 inequalities
     rate_sec_hop=ComputeSecRate(M,P_relay,H_b)
     Max_New_sum_rate=0
     t1=time.time()
-    per_search=False
-    if per_search==True:
+    
+    sum_rate_opt=CoF_compute_search_pow_flex_beta(P_con,H_a,True, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
+    
+    t2=time.time()
+    per_c_search=False
+    if per_c_search==True:
         for code_order in itertools.permutations(list(range(0, L)), L):
             per_c=list(code_order)
-            (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_c)
+            (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay, per_c)
             if Max_New_sum_rate<New_sum_rate_opt:
                 Max_New_sum_rate=New_sum_rate_opt
                 New_sum_rate_opt=Max_New_sum_rate
-    elif per_search==False: 
+    elif per_c_search==False: 
         '''
         #global per_s, per_c
         (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay, per_s, per_c)
         '''
         #compute two permutation after differential evolution operation
-        (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, H_b, P_con, P_relay)
+        (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay)
         
-    t2=time.time()
-    sum_rate_opt=CoF_compute_search_pow_flex_beta(P_con,H_a,True,True,P_Search_Alg,rate_sec_hop,'asym_mod','asym_quan')
+    
     t3=time.time()
-    return New_sum_rate_opt, sum_rate_opt,(t2-t1),(t3-t2)
+    return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1)
+
 
 if __name__=="__main__":
-    num_batch=120
+    num_batch=1
     sum_rate=[]
     New_sum_rate=[]
     New_sum_time=[]
@@ -62,7 +71,8 @@ if __name__=="__main__":
     #ratelist
     #result_list=[]
     #PI_con=[10**1,10**1.5,10**2,10**2.5,10**3,10**3.5,10**4]
-    PI_con=[10**2,10**2.2,10**2.4,10**2.6,10**2.8,10**3]
+    #PI_con=[10**2,10**2.2,10**2.4,10**2.6,10**2.8]
+    PI_con=[10**2.5]
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
@@ -96,6 +106,6 @@ if __name__=="__main__":
     plot_new_rate.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
     plot_new_rate.set_legend_options(loc='upper left')
     plot_compare=plot_new_rate+plot_rate
-    plot_compare.save("/home/chenghai/Pictures/Results/foo2.png")
+    plot_compare.save("/home/chenghai/Pictures/Results/foo4.png")
     plot_compare.show()
     raw_input()

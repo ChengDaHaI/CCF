@@ -8,6 +8,7 @@ from sage.parallel.all import *
 import time
 from CoF_basic import *
 import itertools
+import copy
 
 # A: matrix, mod_order: permutation
 def check_feasible_permutation(A, decode_order, mod_order):
@@ -47,6 +48,9 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
     if mod_scheme == 'asym_mod':
         # iterate all permutations 
         sum_rate_max = 0
+        r_opt=[0]*L# optimal source rate
+        trans_shaping_opt = [0]*L# optimal shaping lattice
+        trans_coding_opt  = [0]*L# optimal coding lattice
         has_feasible_mod = False
         for mod_order in itertools.permutations(list(range(0, M)), L):
             # each element in mod_order: the relay that the l-th lattice should be assigned to
@@ -114,6 +118,10 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                             sum_rate = sum(r)
                             if sum_rate_max < sum_rate:
                                 sum_rate_max = sum_rate
+                                r_opt = copy.copy(r)
+                                trans_shaping_opt = copy.copy(trans_coarse_lattices)
+                                trans_coding_opt  = copy.copy(trans_fine_lattices)
+                                
                     if has_feasible_quan == False:
                         raise Exception('If Q is full rank, then there must be at leat one feasible quantizatioin way. But no one found.')
                 else:
@@ -122,7 +130,8 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
         # if no successful scheme found,
         if has_feasible_mod == False: 
             raise Exception('If Q is full rank, then there must be at leat one feasible modulo way. But no one found.')
-        return sum_rate_max
+        # return the optimal sum rate , rate tuple, shaping lattice , and coding lattice
+        return sum_rate_max, r_opt, trans_shaping_opt, trans_coding_opt
     
     elif mod_scheme == 'sym_mod' and quan_scheme == 'asym_quan':
         relay_coarse_lattice = max(trans_coarse_lattices)

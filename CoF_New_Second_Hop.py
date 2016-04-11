@@ -1,6 +1,7 @@
 #coding=utf-8 
 '''
 This includes some functions related with the second hop in CoF.
+That seems to be wrong!
 '''
 from sage.all import *
 from scipy import optimize
