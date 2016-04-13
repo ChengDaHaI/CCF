@@ -63,6 +63,7 @@ if False:
 else:
     #scaling factor beta decide the rate pieces in shaping lattice part
     def Linear_Program(entropy_coefficient_list,secChannel_constriant,source_rate_upbound_list,per_s,per_c,beta):
+        
         #object Function in the linear programming problem 
         C=[0]*(L)#the last L rate pieces
         for i in range(0,L):
@@ -111,10 +112,10 @@ else:
         result=optimize.linprog(C, A_ub=A_ConstriantMatrix, b_ub=b_ConstriantVector, bounds=bound, options={"disp": False})
         Part_SourceRate=np.dot(np.array([-(i+1) for i in range(0,L-1)]),Part_ratepiece)
         if result.success == False:
-            print 'optimization failure'
+            # print 'optimization failure'
             return 0
         else:
-            print 'source rate pieces:', Part_ratepiece, result.x
+            # print 'source rate pieces:', Part_ratepiece, result.x
             return result.fun+Part_SourceRate
         #return the true max summation of source rates
         
@@ -155,7 +156,9 @@ def CCF_fix_pow_sourceRate_upbound(P_source,H_a,beta=[]):
     A_best_LLL_F = matrix(GF(p), A_best_LLL)
     if A_best_LLL_F.rank() != min(L, M):
         source_rate_list=0
-    return (source_rate_list, A_best_LLL_F)
+    return (source_rate_list, A_best_LLL)
+
+
 
 #compute the new CCF system sum rate
 #-------------------
@@ -168,7 +171,6 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, P_relay,per_c):
     #SecChannel_constiant=ComputeSecRate(M,P_relay,H_b)
     SecChannel_constiant=rate_sec_hop
     #test program running time cost
-    Max_sumrate=0
     
     #=======#
     #compute the proper nested shaping lattice order from the betaScale
@@ -189,9 +191,6 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, P_relay,per_c):
         per_s.append(max_beta_index)
         beta[max_beta_index]=0
     
-    '''
-    per_s.reverse()
-    '''
     #compute the coefficient of rate pieces of the conditional entropy 
     entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
     t1=time.time()
@@ -226,8 +225,8 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
             per_c.append(H_a_colmin_max_index)
             H_a_col_min[H_a_colmin_max_index]=0
         
-        # change the permutaton of coding lattice, just for comparision
-        #per_c.reverse()#a larger channel coefficient corresponds to a finer coding lattice
+        
+        per_c.reverse()#a larger channel coefficient corresponds to a finer coding lattice
         
     #perform differential evolution 
     #-------------------------------------------
@@ -245,7 +244,7 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
         #test program running time cost
         t1=time.time()
         try:
-            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges,strategy="best1bin",maxiter=10,disp=True)
+            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=20, disp=True)
         except:
             print 'error in differential evolution algorithm'
             raise

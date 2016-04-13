@@ -126,7 +126,7 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
             #Pranges=[(float(beta_max)/brute_number, beta_max)]
             #test program running time cost
             t1=time.time()
-            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges,maxiter=10,disp=True)
+            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges, maxiter=20, disp=True)
             t2=time.time()
             t=t2-t1
             P_opt=res_brute.x
@@ -139,7 +139,12 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
     except:
         print 'error in search algorithms'
         raise
-    return sum_rate_opt
+    # retrun beta to check the feasiblility
+    is_return_beta = True
+    if is_return_beta:
+        return sum_rate_opt, P_opt
+    else:
+        return sum_rate_opt
 
 
 #传入P_con,H_a,is_dual_hop,rate_sec_hop等参数
