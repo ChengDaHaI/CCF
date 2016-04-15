@@ -35,7 +35,7 @@ if False:
             #piece_mount=per_c[i]-per_s[i]
             for j in range(0,2*L-1):
                 #SourseRate[i][j]=[0]*(2*L-1)
-                if (j>=per_s[i])&(j<=per_c[i]+L-1):
+                if (j>=per_s.index(i))&(j<=per_c.index(i)+L-1):
                     SourseRate[i][j]=1
         #construct the linear programming equation
         channel_mode="parallel"
@@ -47,7 +47,7 @@ if False:
             for i in range(L+1,len(subset_list)):
                 bound_sum=0
                 for j in subset_list[i]:
-                    bound_sum=bound_sum+secChannel_constriant[i-1]
+                    bound_sum=bound_sum+secChannel_constriant[j]
                 b_ConstriantVector.append(bound_sum)
         elif channel_mode=="MAC":
             b_ConstriantVector=source_rate_upbound_list+secChannel_constriant
@@ -89,11 +89,11 @@ else:
             #SourseRate[:][L-1:2*L-1]+entropy_coefficient_list[:][L-1:2*L-1]
             b_ConstriantVector=source_rate_upbound_list+secChannel_constriant[0:M]
             #change the parallel channel capacity constraints
-            subset_list=list(powerset(range(0,L)))
+            subset_list=list(powerset(set(range(0,L))))
             for i in range(L+1,len(subset_list)):
                 bound_sum=0
                 for j in subset_list[i]:
-                    bound_sum=bound_sum+secChannel_constriant[i-1]
+                    bound_sum=bound_sum+secChannel_constriant[j]
                 b_ConstriantVector.append(bound_sum)
             #substract the known part form the b_ConstriantVector
             Part_Aconstriant=np.array([SourseRate[i][0:L-1] for i in range(len(SourseRate))]+[entropy_coefficient_list[i][0:L-1] for i in range(len(entropy_coefficient_list))])
@@ -224,8 +224,7 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
             H_a_colmin_max_index=H_a_col_min.index(H_a_colmin_max)
             per_c.append(H_a_colmin_max_index)
             H_a_col_min[H_a_colmin_max_index]=0
-        
-        
+
         per_c.reverse()#a larger channel coefficient corresponds to a finer coding lattice
         
     #perform differential evolution 
@@ -235,16 +234,16 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
     fix_pow = True
     if fix_pow:#fixed source power
         CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), [P_con]*L, H_a, rate_sec_hop, P_relay,per_c)
-        Pranges=((0.1,betaScale_max),)*L #L beta and L source power 
+        Pranges=((0.01,betaScale_max),)*L #L beta and L source power 
     else:# optimize source power
         CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), x[L:2*L], H_a, rate_sec_hop, P_relay,per_c)
-        Pranges=((0.1,betaScale_max),)*L+((0.1,P_con),)*L #L beta and L source power 
+        Pranges=((0.01,betaScale_max),)*L+((0.01,P_con),)*L #L beta and L source power 
     
     if P_Search_Alg=='differential_evolution':
         #test program running time cost
         t1=time.time()
         try:
-            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=20, disp=True)
+            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=50, disp=False)
         except:
             print 'error in differential evolution algorithm'
             raise

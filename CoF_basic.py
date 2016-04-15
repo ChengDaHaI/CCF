@@ -4,7 +4,7 @@ import math
 
 
 L = 3 # L transmitters
-M =3# M relays
+M = 3 # M relays
 p = 17 # The prime number
 
 Cores = 8 # The number of CPU cores used in parallel computing

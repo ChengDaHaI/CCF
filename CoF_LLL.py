@@ -105,9 +105,39 @@ def CoF_compute_fixed_pow_flex(P_t, P_con, is_return_A, H_a, is_dual_hop, rate_s
                 try:
                     support_result = second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A_best_LLL, rate_sec_hop, mod_scheme, quan_scheme)
                     support_rates = support_result[0]
-                    print 'source rate: ', support_result[1]
-                    print 'shaping lattice: ', support_result[2]
-                    print 'coding lattice: ', support_result[3]
+                    #print 'source rate: ', support_result[1]
+                    #print 'shaping lattice: ', support_result[2]
+                    #print 'coding lattice: ', support_result[3]
+                    
+                    #--------------------------------
+                    #compute the proper coding lattice order
+                    if False:
+                        H_a_col_min=[]
+                        H_a_trans=H_a.transpose()
+                        H_a_trans=list(H_a_trans)
+                        for i in range(L):
+                            for j in range(L):
+                                temp=math.fabs(H_a_trans[i][j])
+                                H_a_trans[i][j]=copy.copy(temp)
+                            H_a_col_min.append(min(H_a_trans[i]))
+                        per_c=[]
+                        for i in range(L):
+                            H_a_colmin_max=max(H_a_col_min)
+                            H_a_colmin_max_index=H_a_col_min.index(H_a_colmin_max)
+                            per_c.append(H_a_colmin_max_index)
+                            H_a_col_min[H_a_colmin_max_index]=0
+                        per_c.reverse()#a larger channel coefficient corresponds to a finer coding lattice
+                        flag=True
+                        for i in range(L-1):
+                            if support_result[3][per_c[i]] >= support_result[3][per_c[i+1]]: 
+                                continue
+                            else:
+                                print 'Not same as the expect'
+                                flag=False
+                                break
+                        if flag:
+                            print 'coding lattice order: same as the expect'
+                        
                     
                 except:
                     print 'error in second hop'
