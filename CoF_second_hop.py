@@ -121,7 +121,8 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                                 r_opt = copy.copy(r)
                                 trans_shaping_opt = copy.copy(trans_coarse_lattices)
                                 trans_coding_opt  = copy.copy(trans_fine_lattices)
-                                
+                                mod_order_opt = copy.copy(mod_order_list)
+                                quan_order_opt = copy.copy(quan_order_list)
                     if has_feasible_quan == False:
                         raise Exception('If Q is full rank, then there must be at leat one feasible quantizatioin way. But no one found.')
                 else:
@@ -131,7 +132,7 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
         if has_feasible_mod == False: 
             raise Exception('If Q is full rank, then there must be at leat one feasible modulo way. But no one found.')
         # return the optimal sum rate , rate tuple, shaping lattice , and coding lattice
-        return sum_rate_max, r_opt, trans_shaping_opt, trans_coding_opt
+        return sum_rate_max, r_opt, trans_shaping_opt, trans_coding_opt, mod_order_opt, quan_order_opt
     
     elif mod_scheme == 'sym_mod' and quan_scheme == 'asym_quan':
         relay_coarse_lattice = max(trans_coarse_lattices)
@@ -219,28 +220,39 @@ if __name__ == "__main__":
 #     A = matrix(ZZ, 3, 3, [[0, 0, 2], [2, 2, 0], [0, 2, 2]])
 #     print second_hop(fine_lattices, coarse_lattices, A, R, 'asym_mod')
     
-    R = [1, 2]
-    A = matrix(ZZ, 2, 2, [[1, 2], [1, 1]])
-    p = 3
-    relay_fine_lattices = [0.5, 0.2]
-    trans_coarse_lattices = [1.5, 2.0]
-    beta = [1]*2
-    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
+#     R = [1, 2]
+#     A = matrix(ZZ, 2, 2, [[1, 2], [1, 1]])
+#     p = 3
+#     relay_fine_lattices = [0.5, 0.2]
+#     trans_coarse_lattices = [1.5, 2.0]
+#     beta = [1]*2
+#     print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
     # should be 1.792
     
-    R = [1, 10]
-    A = matrix(ZZ, 2, 2, [[1, 2], [0, 1]])
-    p = 3
-    relay_fine_lattices = [0.5, 0.2]
-    trans_coarse_lattices = [1.5, 2.0]
-    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
+#     R = [1, 10]
+#     A = matrix(ZZ, 2, 2, [[1, 2], [0, 1]])
+#     p = 3
+#     relay_fine_lattices = [0.5, 0.2]
+#     trans_coarse_lattices = [1.5, 2.0]
+#     print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
+#     # should be 1.792
+# 
+#     R = [1, 1]
+#     A = matrix(ZZ, 2, 2, [[0, 2], [1, 1]])
+#     p = 3
+#     relay_fine_lattices = [0.5, 0.2]
+#     trans_coarse_lattices = [1.5, 2.0]
+#     print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
     # should be 1.792
-
-    R = [1, 1]
-    A = matrix(ZZ, 2, 2, [[0, 2], [1, 1]])
-    p = 3
-    relay_fine_lattices = [0.5, 0.2]
-    trans_coarse_lattices = [1.5, 2.0]
-    print RR(second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, R, 'asym_mod', 'asym_quan'))
-    # should be 1.792
+    
+    #test 
+    
+    A = matrix(ZZ, 3, 3, [[1,0,0], [-1,0,1], [1,-1,1]])
+    print 'Integer matrix A: ', A
+    trans_fine_lattices = [17,70, 10.45, 17.74]
+    print 'coding lattice at transmitter:', trans_fine_lattices
+    quan_order = [2, 0, 1]
+    print 'quan_order at relays: ', quan_order
+    is_quan_decodable = check_feasible_permutation(A, [-trans_fine_lattices[i] for i in range(0, L)], quan_order)
+    print is_quan_decodable
     

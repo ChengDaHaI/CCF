@@ -164,7 +164,7 @@ def CCF_fix_pow_sourceRate_upbound(P_source,H_a,beta=[]):
 #-------------------
 #    Let Source Power be L variables to be optimized!!!
 #----------------------
-def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, P_relay,per_c):
+def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c):
     #compute the source rate upbound and matrix A
     source_rate_upbound_list, A  =CCF_fix_pow_sourceRate_upbound(P_source,H_a,betaScale)
     #the second hop channel capacity constriant
@@ -233,10 +233,10 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
     #-------------------------------
     fix_pow = True
     if fix_pow:#fixed source power
-        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), [P_con]*L, H_a, rate_sec_hop, P_relay,per_c)
+        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), [P_con]*L, H_a, rate_sec_hop, per_c)
         Pranges=((0.01,betaScale_max),)*L #L beta and L source power 
     else:# optimize source power
-        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), x[L:2*L], H_a, rate_sec_hop, P_relay,per_c)
+        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), x[L:2*L], H_a, rate_sec_hop, per_c)
         Pranges=((0.01,betaScale_max),)*L+((0.01,P_con),)*L #L beta and L source power 
     
     if P_Search_Alg=='differential_evolution':

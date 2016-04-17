@@ -79,7 +79,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
             # put the optimal solution beta_pow_opt into our NEW CCF system
             try:
                 true_beta = vector(RR, [1,] + list(beta_pow_opt))
-                LP_res = CCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, P_relay, per_c)
+                LP_res = CCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, per_c)
                 
             except:
                 print 'Error In Check The Optimal SOlution to NEW CCF system!'
@@ -88,7 +88,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
             
         else:
             # if the optimal solution is infeasible in NEW CCF system, we set the sum rate to zero.
-            return 0, 0 ,0, 0 #New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1)
+            return 0, 0 ,0, 0, 0 #New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), invalid chanel realization
         
     t2=time.time()
     per_c_search=False
@@ -109,7 +109,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         
     
     t3=time.time()
-    return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1)
+    return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), 1#1 is the flag of valid chanel realization.
     
     
 # chech the feasibility of optimal solution of originl CCF in the NEW CCF system
@@ -152,6 +152,8 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
         source_rate   = support_result[1]
         shaping_lattice= support_result[2]
         coding_lattice = support_result[3]
+        mod_order = support_result[4]
+        quan_order = support_result[5]
         
         if np.abs(support_rates - sum_rate_opt) > 1* 10**(-3): # prevent the numerical error:
             print 'Something Wrong When recovery the Original CCF sum rate!'
@@ -254,7 +256,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
     
         
 if __name__=="__main__":
-    num_batch = 240
+    num_batch = 20
     sum_rate=[]
     New_sum_rate=[]
     New_sum_time=[]
@@ -263,8 +265,8 @@ if __name__=="__main__":
     #result_list=[]
     #PI_con=[10**1,10**1.5,10**2,10**2.5,10**3,10**3.5]
     #PI_con=[10**2, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
-    PI_con=[10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
-    #PI_con=[10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4]
+    #PI_con=[10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
+    PI_con=[10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4]
     #PI_con=[10**1.5]
     print 'Simulation Starts!\n'
     t1=time.time()
@@ -274,15 +276,19 @@ if __name__=="__main__":
         Rate_list=[result_list[i][1][1] for i in range(0,num_batch)]
         New_time_list=[result_list[i][1][2] for i in range(0,num_batch)]
         time_list=[result_list[i][1][3] for i in range(0,num_batch)]
+        valid_channel = [result_list[i][1][4] for i in range(0,num_batch)]
         ##
+        
+        valid_number = [valid_channel[i] for i in range(0,num_batch)]# the times of valid channel realization
+        valid_sum = sum(valid_number)
         New_ratelist=[New_Rate_list[i] for i in range(0,num_batch)]
-        New_sum_rate.append(sum(New_ratelist)/num_batch)
+        New_sum_rate.append(sum(New_ratelist)/valid_sum)
         ratelist=[Rate_list[i] for i in range(0,num_batch)]
-        sum_rate.append(sum(ratelist)/num_batch)
+        sum_rate.append(sum(ratelist)/valid_sum)
         New_timelist=[New_time_list[i] for i in range(0,num_batch)]
-        New_sum_time.append(sum(New_timelist)/num_batch)
+        New_sum_time.append(sum(New_timelist)/valid_sum)
         timelist=[time_list[i] for i in range(0,num_batch)]
-        sum_time.append(sum(timelist)/num_batch)
+        sum_time.append(sum(timelist)/valid_sum)
     t2=time.time()
     print 'Total Time Cost: ' ,(t2-t1)
     print 'New CCF Model Time Cost:' , New_sum_time
