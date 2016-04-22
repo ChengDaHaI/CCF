@@ -10,7 +10,7 @@ from CoF_basic import *
 from itertools import chain, combinations
 
 #produce the subsets
-def powerset(iterable):
+def Powerset(iterable):
   xs = list(iterable)
   # note we return an iterator rather than a list
   return chain.from_iterable( combinations(xs,n) for n in range(len(xs)+1) )
@@ -29,7 +29,7 @@ def ComputeSecRate(M,P_relay,H_b):
         rate_sec_hop[i]=0.5*log(1+P[i],2)
     constraint.extend(rate_sec_hop)
     list_M=range(1,M+1)
-    subsets_list=list(powerset(set(list_M)))
+    subsets_list=list(Powerset(set(list_M)))
     for i in range(M+1,pow(2,M)):
         pow_forward=0
         for j in subsets_list[i]:

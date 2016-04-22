@@ -84,11 +84,56 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                         sum_rate_max = sum_rate
                 elif quan_scheme == 'asym_quan':
                     has_feasible_quan = False
-                    for quan_order in itertools.permutations(list(range(0, M)), L):
-                        relay_compute_fine_lattices = list(relay_fine_lattices)
-                        is_quan_decodable = check_feasible_permutation(A, [-relay_compute_fine_lattices[i] for i in range(0, L)], quan_order)
-                        if is_quan_decodable == True:
-                            has_feasible_quan = True
+                    
+                    if False: # comment Tan's method
+                        # Tan's method to find source coding lattices and quan_order seems to be wrong!
+                        for quan_order in itertools.permutations(list(range(0, M)), L):
+                            relay_compute_fine_lattices = list(relay_fine_lattices)
+                            is_quan_decodable = check_feasible_permutation(A, [-relay_compute_fine_lattices[i] for i in range(0, L)], quan_order)
+                            if is_quan_decodable == True:
+                                has_feasible_quan = True
+                                quan_order_list = list(quan_order)
+                                # determine the fine lattice of the l-th transmitter according to computation constraints
+                                trans_compute_fine_lattices = [float(0)]*L
+                                for i_L in range(0, L):
+                                    for i_M in range(0, M):
+                                        if (A[i_M, i_L]!=0) and (relay_compute_fine_lattices[i_M]>trans_compute_fine_lattices[i_L]):
+                                            trans_compute_fine_lattices[i_L] = relay_compute_fine_lattices[i_M]
+                                # map the trans_compute_fine_lattices to the relays
+                                relay_map_fine_lattices = [0]*M
+                                for i_m in range(0, M):
+                                    relay_map_fine_lattices[i_m] = trans_compute_fine_lattices[quan_order_list.index(i_m)]
+                                
+                                # determine the quantization lattice at the m-th relay
+                                relay_quan_fine_lattices = [0]*M
+                                for i_m in range(0, M):
+                                    relay_quan_fine_lattices[i_m] = max(relay_map_fine_lattices[i_m], relay_coarse_lattices[i_m]/(2**(2*rate_sec_hop[i_m])))
+                                
+                                # map the relay_quan_fine_lattices back to the transmitters
+                                trans_fine_lattices = [0]*L
+                                for i_l in range(0, L):
+                                    trans_fine_lattices[i_l] = relay_quan_fine_lattices[quan_order_list[i_l]]
+                                
+                                # calculate transmission sum rates
+                                r = [0]*L
+                                for i_l in range(0, L):
+                                    r[i_l] = max(0, 0.5*log(trans_coarse_lattices[i_l]/trans_fine_lattices[i_l], 2))
+                                sum_rate = sum(r)
+                                if sum_rate_max < sum_rate:
+                                    sum_rate_max = sum_rate
+                                    r_opt = copy.copy(r)
+                                    trans_shaping_opt = copy.copy(trans_coarse_lattices)
+                                    trans_coding_opt  = copy.copy(trans_fine_lattices)
+                                    mod_order_opt = copy.copy(mod_order_list)
+                                    quan_order_opt = copy.copy(quan_order_list)
+                    else:
+                        # My revised method to find source coding lattices and quan_order.
+                        # I just change to check the feasibility of quan_order at the last step.
+                        for quan_order in itertools.permutations(list(range(0, M)), L):
+                            relay_compute_fine_lattices = list(relay_fine_lattices)
+                            '''
+                            is_quan_decodable = check_feasible_permutation(A, [-relay_compute_fine_lattices[i] for i in range(0, L)], quan_order)
+                            '''
                             quan_order_list = list(quan_order)
                             # determine the fine lattice of the l-th transmitter according to computation constraints
                             trans_compute_fine_lattices = [float(0)]*L
@@ -111,18 +156,24 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                             for i_l in range(0, L):
                                 trans_fine_lattices[i_l] = relay_quan_fine_lattices[quan_order_list[i_l]]
                             
-                            # calculate transmission sum rates
-                            r = [0]*L
-                            for i_l in range(0, L):
-                                r[i_l] = max(0, 0.5*log(trans_coarse_lattices[i_l]/trans_fine_lattices[i_l], 2))
-                            sum_rate = sum(r)
-                            if sum_rate_max < sum_rate:
-                                sum_rate_max = sum_rate
-                                r_opt = copy.copy(r)
-                                trans_shaping_opt = copy.copy(trans_coarse_lattices)
-                                trans_coding_opt  = copy.copy(trans_fine_lattices)
-                                mod_order_opt = copy.copy(mod_order_list)
-                                quan_order_opt = copy.copy(quan_order_list)
+                            # check the feasibility of quan_order with given trans_fine_lattices
+                            is_quan_decodable = check_feasible_permutation(A, [-trans_fine_lattices[i] for i in range(0, L)], quan_order)
+                            
+                            if is_quan_decodable:
+                                has_feasible_quan = True
+                                # calculate transmission sum rates
+                                r = [0]*L
+                                for i_l in range(0, L):
+                                    r[i_l] = max(0, 0.5*log(trans_coarse_lattices[i_l]/trans_fine_lattices[i_l], 2))
+                                sum_rate = sum(r)
+                                if sum_rate_max < sum_rate:
+                                    sum_rate_max = sum_rate
+                                    r_opt = copy.copy(r)
+                                    trans_shaping_opt = copy.copy(trans_coarse_lattices)
+                                    trans_coding_opt  = copy.copy(trans_fine_lattices)
+                                    mod_order_opt = copy.copy(mod_order_list)
+                                    quan_order_opt = copy.copy(quan_order_list)
+                                
                     if has_feasible_quan == False:
                         raise Exception('If Q is full rank, then there must be at leat one feasible quantizatioin way. But no one found.')
                 else:

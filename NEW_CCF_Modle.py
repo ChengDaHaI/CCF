@@ -11,7 +11,7 @@ from NEW_basic import *
 from itertools import chain, combinations, permutations
 
 #generate the subsets
-def powerset(iterable):
+def Powerset(iterable):
   xs = list(iterable)
   # note we return an iterator rather than a list
   return chain.from_iterable( combinations(xs,n) for n in range(len(xs)+1) )
@@ -48,7 +48,7 @@ def Relay_Forward_Rate(per_s,per_c,A):
         rate_piece[i]=0.5*log(beta[i]/beta[i+1],2)
     '''
     #produce subset list
-    subset_list=list(powerset(range(0,L)))
+    subset_list=list(Powerset(range(0,L)))
     set_L=set(range(0,L))
     '''
     #conditional entropy list
@@ -103,7 +103,7 @@ def Relay_Forward_Rate(per_s,per_c,A):
 #input : conditional entropy rate pieces coefficient list
 #output: every vertex rate's piece rate coefficient  list 
 def Vertex_RatePiece_Coefficient(coefficient_list):
-    subset_list=list(powerset(range(1,L+1)))
+    subset_list=list(Powerset(range(1,L+1)))
     vertex_list=[]#store all vertex
     #generate object function weight order
     for weight_order in permutations(list(range(1,L+1))):

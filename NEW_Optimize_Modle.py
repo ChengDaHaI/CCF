@@ -5,7 +5,7 @@ Email: chenghai@shanghaitech.edu.cn
 The ShangHaiTech University
 '''
 from sage.all import *
-from NEW_CCF_Modle import Relay_Forward_Rate, powerset
+from NEW_CCF_Modle import Relay_Forward_Rate, Powerset
 from NewSecondHopChannel import ComputeSecRate
 from scipy import optimize
 from CoF_LLL import Find_A_and_Rate
@@ -43,7 +43,7 @@ if False:
             A_ConstriantMatrix=SourseRate+entropy_coefficient_list
             b_ConstriantVector=source_rate_upbound_list+secChannel_constriant[0:M]
             #change the parallel channel capacity constraints
-            subset_list=list(powerset(range(0,L)))
+            subset_list=list(Powerset(range(0,L)))
             for i in range(L+1,len(subset_list)):
                 bound_sum=0
                 for j in subset_list[i]:
@@ -89,7 +89,7 @@ else:
             #SourseRate[:][L-1:2*L-1]+entropy_coefficient_list[:][L-1:2*L-1]
             b_ConstriantVector=source_rate_upbound_list+secChannel_constriant[0:M]
             #change the parallel channel capacity constraints
-            subset_list=list(powerset(set(range(0,L))))
+            subset_list=list(Powerset(set(range(0,L))))
             for i in range(L+1,len(subset_list)):
                 bound_sum=0
                 for j in subset_list[i]:
@@ -115,7 +115,7 @@ else:
             # print 'optimization failure'
             return 0
         else:
-            # print 'source rate pieces:', Part_ratepiece, result.x
+            #print 'source rate pieces:', Part_ratepiece, result.x
             return result.fun+Part_SourceRate
         #return the true max summation of source rates
         
