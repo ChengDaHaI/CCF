@@ -130,9 +130,9 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
             t2=time.time()
             t=t2-t1
             P_opt=res_brute.x
-            print 'optimal beta and source power(original)', P_opt
+            # print 'optimal beta and source power(original)', P_opt
             sum_rate_opt=-res_brute.fun
-            print 'maximum sum source rate(original)', sum_rate_opt
+            # print 'maximum sum source rate(original)', sum_rate_opt
         #end
         else:
             raise Exception('error: algorithm not supported')

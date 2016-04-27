@@ -250,9 +250,9 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
         t2=time.time()
         t=t2-t1
         beta_opt=ResSearch.x
-        print 'optimal beta and source power(new)', beta_opt
+        # print 'optimal beta and source power(new)', beta_opt
         sum_rate_opt=-ResSearch.fun
-        print 'maximum sum source rate(new)', sum_rate_opt
+        # print 'maximum sum source rate(new)', sum_rate_opt
     else:
         Exception("error: Not Such Search Algorithm!")
     return beta_opt, sum_rate_opt
