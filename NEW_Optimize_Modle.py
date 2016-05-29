@@ -18,106 +18,64 @@ import numpy as np
 
 #the varables to optimize are the all rate piece beta1~2L-1
 #per_s is [1,,,L]'s permutation, per_c is [L+1,2*L]'s permutation
-if False:
-    def Linear_Program(entropy_coefficient_list,secChannel_constriant,source_rate_upbound_list,per_s,per_c):
-        #object Function in the linear programming problem 
-        C=[0]*(2*L-1)
-        for i in range(0,2*L-1):
-            if i <=L-1:
-                C[i]=-(i+1)#Attention, the real object function coefficient should be positive
-            elif i>=L:
-                C[i]=-(2*L-1-i)#Attention, the real object function coefficient should be positive
-        # source rate is the coefficient list of rate pieces
-        SourseRate=[]
-        for i in range(L):
-            SourseRate.extend([[0]*(2*L-1)])
-        for i in range(0,L):
-            #piece_mount=per_c[i]-per_s[i]
-            for j in range(0,2*L-1):
-                #SourseRate[i][j]=[0]*(2*L-1)
-                if (j>=per_s.index(i))&(j<=per_c.index(i)+L-1):
-                    SourseRate[i][j]=1
-        #construct the linear programming equation
-        channel_mode="parallel"
-        if channel_mode=="parallel":
-            A_ConstriantMatrix=SourseRate+entropy_coefficient_list
-            b_ConstriantVector=source_rate_upbound_list+secChannel_constriant[0:M]
-            #change the parallel channel capacity constraints
-            subset_list=list(Powerset(range(0,L)))
-            for i in range(L+1,len(subset_list)):
-                bound_sum=0
-                for j in subset_list[i]:
-                    bound_sum=bound_sum+secChannel_constriant[j]
-                b_ConstriantVector.append(bound_sum)
-        elif channel_mode=="MAC":
-            b_ConstriantVector=source_rate_upbound_list+secChannel_constriant
-            A_ConstriantMatrix=SourseRate+entropy_coefficient_list
-        # the default bound is nonnegative, that is (0,None)
-        bound=[0]*(2*L-1)
-        for i in range(2*L-1):
-            bound[i]=(0, None)
-        bound=tuple(bound)
-        result=optimize.linprog(C, A_ub=A_ConstriantMatrix, b_ub=b_ConstriantVector, bounds=bound, options={"disp": False})
-        print result.x
-        return result
-else:
-    #scaling factor beta decide the rate pieces in shaping lattice part
-    def Linear_Program(entropy_coefficient_list,secChannel_constriant,source_rate_upbound_list,per_s,per_c,beta):
-        
-        #object Function in the linear programming problem 
-        C=[0]*(L)#the last L rate pieces
-        for i in range(0,L):
-            C[i]=-(L-i)#Attention, the real object function coefficient should be positive
-        #the first (L-1) rate pieces
-        Part_ratepiece=[0]*(L-1)
-        for i in range(L-1):
-            Part_ratepiece[i]=0.5*np.log2(beta[per_s[i]]/beta[per_s[i+1]])
-        # source rate is the coefficient list of rate pieces
-        SourseRate=[]
-        for i in range(L):
-            SourseRate.extend([[0]*(2*L-1)])
-        for i in range(0,L):
-            #piece_mount=per_c[i]-per_s[i]
-            for j in range(0,2*L-1):
-                #SourseRate[i][j]=[0]*(2*L-1)
-                if (j>=per_s.index(i))&(j<=per_c.index(i)+L-1):
-                    SourseRate[i][j]=1
-        #construct the linear programming equation
-        channel_mode="parallel"
-        if channel_mode=="parallel":
-            A_ConstriantMatrix=[SourseRate[i][L-1:2*L-1] for i in range(len(SourseRate))]+[entropy_coefficient_list[i][L-1:2*L-1] for i in range(len(entropy_coefficient_list))]
-            #SourseRate[:][L-1:2*L-1]+entropy_coefficient_list[:][L-1:2*L-1]
-            b_ConstriantVector=source_rate_upbound_list+secChannel_constriant[0:M]
-            #change the parallel channel capacity constraints
-            subset_list=list(Powerset(set(range(0,L))))
-            for i in range(L+1,len(subset_list)):
-                bound_sum=0
-                for j in subset_list[i]:
-                    bound_sum=bound_sum+secChannel_constriant[j]
-                b_ConstriantVector.append(bound_sum)
-            #substract the known part form the b_ConstriantVector
-            Part_Aconstriant=np.array([SourseRate[i][0:L-1] for i in range(len(SourseRate))]+[entropy_coefficient_list[i][0:L-1] for i in range(len(entropy_coefficient_list))])
-            Part_ratepiece=np.array(Part_ratepiece)
-            To_Be_Sub=np.dot(Part_Aconstriant,Part_ratepiece)
-            b_ConstriantVector=np.subtract(np.array(b_ConstriantVector),To_Be_Sub)
-            b_ConstriantVector=b_ConstriantVector.tolist()
-        elif channel_mode=="MAC":
-            b_ConstriantVector=source_rate_upbound_list+secChannel_constriant
-            A_ConstriantMatrix=SourseRate+entropy_coefficient_list
-        # the default bound is nonnegative, that is (0,None)
-        bound=[0]*(L)
-        for i in range(L):
-            bound[i]=(0, None)
-        bound=tuple(bound)
-        result=optimize.linprog(C, A_ub=A_ConstriantMatrix, b_ub=b_ConstriantVector, bounds=bound, options={"disp": False})
-        Part_SourceRate=np.dot(np.array([-(i+1) for i in range(0,L-1)]),Part_ratepiece)
-        if result.success == False:
-            # print 'optimization failure'
-            return 0
-        else:
-            #print 'source rate pieces:', Part_ratepiece, result.x
-            return result.fun+Part_SourceRate
-        #return the true max summation of source rates
+
+#scaling factor beta decide the rate pieces in shaping lattice part
+def Linear_Program(entropy_coefficient_list,secChannel_constriant,source_rate_upbound_list,per_s,per_c,beta):
+    
+    #object Function in the linear programming problem 
+    C=[0]*(L)#the last L rate pieces
+    for i in range(0,L):
+        C[i]=-(L-i)#Attention, the real object function coefficient should be positive
+    #the first (L-1) rate pieces
+    Part_ratepiece=[0]*(L-1)
+    for i in range(L-1):
+        Part_ratepiece[i]=0.5*np.log2(beta[per_s[i]]/beta[per_s[i+1]])
+    # source rate is the coefficient list of rate pieces
+    SourseRate=[]
+    for i in range(L):
+        SourseRate.extend([[0]*(2*L-1)])
+    for i in range(0,L):
+        #piece_mount=per_c[i]-per_s[i]
+        for j in range(0,2*L-1):
+            #SourseRate[i][j]=[0]*(2*L-1)
+            if (j>=per_s.index(i))&(j<=per_c.index(i)+L-1):
+                SourseRate[i][j]=1
+    #construct the linear programming equation
+    channel_mode="parallel"
+    if channel_mode=="parallel":
+        A_ConstriantMatrix=[SourseRate[i][L-1:2*L-1] for i in range(len(SourseRate))]+[entropy_coefficient_list[i][L-1:2*L-1] for i in range(len(entropy_coefficient_list))]
+        #SourseRate[:][L-1:2*L-1]+entropy_coefficient_list[:][L-1:2*L-1]
+        b_ConstriantVector=source_rate_upbound_list+secChannel_constriant[0:M]
+        #change the parallel channel capacity constraints
+        subset_list=list(Powerset(set(range(0,L))))
+        for i in range(L+1,len(subset_list)):
+            bound_sum=0
+            for j in subset_list[i]:
+                bound_sum=bound_sum+secChannel_constriant[j]
+            b_ConstriantVector.append(bound_sum)
+        #substract the known part form the b_ConstriantVector
+        Part_Aconstriant=np.array([SourseRate[i][0:L-1] for i in range(len(SourseRate))]+[entropy_coefficient_list[i][0:L-1] for i in range(len(entropy_coefficient_list))])
+        Part_ratepiece=np.array(Part_ratepiece)
+        To_Be_Sub=np.dot(Part_Aconstriant,Part_ratepiece)
+        b_ConstriantVector=np.subtract(np.array(b_ConstriantVector),To_Be_Sub)
+        b_ConstriantVector=b_ConstriantVector.tolist()
+    elif channel_mode=="MAC":
+        b_ConstriantVector=source_rate_upbound_list+secChannel_constriant
+        A_ConstriantMatrix=SourseRate+entropy_coefficient_list
+    # the default bound is nonnegative, that is (0,None)
+    bound=[0]*(L)
+    for i in range(L):
+        bound[i]=(0, None)
+    bound=tuple(bound)
+    result=optimize.linprog(C, A_ub=A_ConstriantMatrix, b_ub=b_ConstriantVector, bounds=bound, options={"disp": False})
+    Part_SourceRate=np.dot(np.array([-(i+1) for i in range(0,L-1)]),Part_ratepiece)
+    if result.success == False:
+        # print 'optimization failure'
+        return 0
+    else:
+        #print 'source rate pieces:', Part_ratepiece, result.x
+        return result.fun+Part_SourceRate
+    #return the true max summation of source rates
         
 
 #compute the source rate upbound and matrix A when given variable beta
@@ -178,9 +136,9 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c):
     #nested shaping lattice order is decided by betaScale and source power P_source
     #-------------------
     
-    beta=copy.copy(betaScale)
+    #beta=copy.copy(betaScale)
     # a larger (beta^2*power) corresponds to a coarse shping lattice
-    beta2_power=list([beta[i]**2*P_source[i] for i in range(0,L)])
+    beta2_power=list([betaScale[i]**2*P_source[i] for i in range(0,L)])
     
     beta=copy.copy(beta2_power)
     per_s=[]#nested shaping lattice order
@@ -233,17 +191,17 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
     #-------------------------------
     fix_pow = True
     if fix_pow:#fixed source power
-        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), [P_con]*L, H_a, rate_sec_hop, per_c)
-        Pranges=((0.01,betaScale_max),)*L #L beta and L source power 
+        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), [P_con]*L, H_a, rate_sec_hop, per_c)
+        Pranges=((0.01,betaScale_max),)*(L) #L beta and L source power 
     else:# optimize source power
-        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, x[0:L]), x[L:2*L], H_a, rate_sec_hop, per_c)
-        Pranges=((0.01,betaScale_max),)*L+((0.01,P_con),)*L #L beta and L source power 
+        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2*L], H_a, rate_sec_hop, per_c)
+        Pranges=((0.01,betaScale_max),)*(L)+((0.01,P_con),)*L #L beta and L source power 
     
     if P_Search_Alg=='differential_evolution':
         #test program running time cost
         t1=time.time()
         try:
-            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=50, disp=False)
+            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=50, disp=True)
         except:
             print 'error in differential evolution algorithm'
             raise
@@ -252,6 +210,7 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
         beta_opt=ResSearch.x
         # print 'optimal beta and source power(new)', beta_opt
         sum_rate_opt=-ResSearch.fun
+        print 'New CCF Differential Evolution:', ResSearch.success
         # print 'maximum sum source rate(new)', sum_rate_opt
     else:
         Exception("error: Not Such Search Algorithm!")

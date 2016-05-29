@@ -17,6 +17,7 @@ import copy
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+from docutils.utils.punctuation_chars import delimiters
 
 @parallel(ncpus=Cores)
 def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
@@ -101,7 +102,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         H_a_col_min[H_a_colmin_max_index]=0
     per_c_check.reverse()#a larger channel coefficient corresponds to a finer coding lattice
     
-    per_c_search = True
+    per_c_search = False
     if per_c_search == True:
         for code_order in itertools.permutations(list(range(0, L)), L):
             per_c=list(code_order)
@@ -171,7 +172,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
         mod_order = support_result[4]
         quan_order = support_result[5]
         
-        if np.abs(support_rates - sum_rate_opt) > 1* 10**(-3): # prevent the numerical error:
+        if np.abs(support_rates - sum_rate_opt) > 1* 10**(-2): # prevent the numerical error:
             print 'Something Wrong When recovery the Original CCF sum rate!'
             #raise
     else:
@@ -275,7 +276,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
-    num_batch = 80
+    num_batch = 240
     sum_rate=[]
     New_sum_rate=[]
     New_fix_sum_rate = []
@@ -288,9 +289,9 @@ if __name__=="__main__":
     #result_list=[]
     #PI_con=[10**1,10**1.5,10**2,10**2.5,10**3,10**3.5]
     #PI_con=[10**2, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
-    PI_con=[10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
-    #PI_con=[10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4]
-    #PI_con=[10**2.8]
+    PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
+    #PI_con=[10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6]
+    PI_con=[10**3.6]
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
@@ -374,7 +375,8 @@ if __name__=="__main__":
     print 'valid channel number in different SNR: ', valid_sum_list
     print 'better perfermance probability: ', better_channel_prob
     PI_dB=[10*log10(P_con) for P_con in PI_con]
-    
+    Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate, New_fix_sum_rate))
+    np.savetxt('/home/haizi/Pictures/Results/TxtFile/' + time.ctime() + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
     
     plot_rate=list_plot(zip(PI_dB,sum_rate),plotjoined=True, marker='d', \
                                       rgbcolor=Color('blue'), linestyle='-.', \
@@ -397,6 +399,6 @@ if __name__=="__main__":
     #plot_compare.title('Comparision of Two CCF')
     plot_compare.set_legend_options(loc='upper left')
     
-    plot_compare.save('/home/haizi/Pictures/Results/'  + time.ctime() + 'L=M=' + L.__str__() +'.png')
+    plot_compare.save('/home/haizi/Pictures/Results/'  + time.ctime() + 'L=' + L.__str__() +'iter = ' + num_batch.__str__() + '.eps')
     plot_compare.show()
     # raw_input()

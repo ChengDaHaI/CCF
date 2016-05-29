@@ -61,7 +61,7 @@ def Compute_AF_rate(Ps,Pr,Ha,Hb,L=2,M=2):
     I=matrix.diagonal([1]*M)
     N=N+I
     #calculate MIMO channel sum rate
-    sum_rate=max(0,0.5*log((1+H*Q*H.transpose()*N.inverse()).determinant(),2))
+    sum_rate=max(0,0.5*log((I+H*Q*H.transpose()*N.inverse()).determinant(),2))
     return sum_rate
 
 if __name__=="__main__" :
