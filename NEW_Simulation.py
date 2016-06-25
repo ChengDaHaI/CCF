@@ -22,29 +22,24 @@ from docutils.utils.punctuation_chars import delimiters
 @parallel(ncpus=Cores)
 def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     set_random_seed()
-    set_HaHb = False
+    
     if set_HaHb == True:
-        '''
-        H_a=matrix(RR, M, L, [[-0.612642983158090, 0.293476637932474, -0.335563118861373],\
-                    [ 0.377058724156508, -0.206528716605357, -0.615919802428871],\
-                    [ 0.264570807268208, -0.592605902143905,  0.699237149229798]])
-
-        H_b=matrix(RR, 1, L, [-0.995387738148530, 0.746656886108230, -0.926365502487133])
+        H_a = set_H_a
+        H_b = set_H_b
         '''
         H_a = matrix(RR, M, L, [ [-0.604774174080910, -0.516611703927027, 0.0251878692137226],\
                                 [-0.350171195717287,  0.814517492278491, -0.236238019733556],\
                                 [ 0.232228528459459, -0.518860603180491,  0.973647111105997]])
         H_b = matrix(RR, 1, L, [ 0.227086968428515,  0.682635663808828, -0.814728906414353])
-        
-        '''
         print 'H_a:', H_a
         print 'H_b:', H_b
         print 'Transmitter Power:', P_con
         '''
+        
     else:   
         H_a = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
         #second hop channel is parallel 
-        H_b = (matrix.random(RR, 1, M, distribution=RealDistribution('gaussian', 1)))
+        H_b = matrix.random(RR, 1, M, distribution=RealDistribution('gaussian', 1))
         '''
         print 'H_a:', H_a
         print 'H_b:', H_b
@@ -69,7 +64,9 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
             
             # put the optimal solution beta_pow_opt into our NEW CCF system
             try:
-                true_beta = vector(RR, [1,] + list(beta_pow_opt))
+                #true_beta = vector(RR, [1,] + list(beta_pow_opt))
+                #true_beta = vector(RR, list(beta_pow_opt))
+                true_beta = beta_pow_opt
                 LP_res = CCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, per_c)
                 
             except:
@@ -102,7 +99,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         H_a_col_min[H_a_colmin_max_index]=0
     per_c_check.reverse()#a larger channel coefficient corresponds to a finer coding lattice
     
-    per_c_search = False
+    per_c_search = True
     if per_c_search == True:
         for code_order in itertools.permutations(list(range(0, L)), L):
             per_c=list(code_order)
@@ -124,8 +121,13 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     better_flag = 0# refer to compute the better channel probability
     if New_sum_rate_opt >= 1.05 * sum_rate_opt:
         better_flag = 1
-        
     t3=time.time()
+#     if P_con == 10**4.0:
+#         if New_sum_rate_opt > 1.15 * sum_rate_opt:
+#             print 'the ratio is: ', New_sum_rate_opt/sum_rate_opt
+#             print 'First channel matirx:\n', H_a
+#             print 'First channel matirx:\n', H_b
+    
     return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), 1, New_sumrate_fix_per_c, better_flag#1 is the flag of valid chanel realization.
     
     
@@ -138,7 +140,8 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
     # transmitter power
     P_t = [P_con]*L
     # all beta factor
-    beta_opt = vector(RR, [1] + list(beta_opt))
+    #beta_opt = vector(RR, [1] + list(beta_opt))
+    #beta_opt = vector(RR, beta_opt)
     #compute the shaping lattice and coding lattice of original CCF
     
     P_vec = vector(RR, P_t)
@@ -276,7 +279,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
-    num_batch = 240
+    num_batch = 1
     sum_rate=[]
     New_sum_rate=[]
     New_fix_sum_rate = []
@@ -288,15 +291,18 @@ if __name__=="__main__":
     #ratelist
     #result_list=[]
     #PI_con=[10**1,10**1.5,10**2,10**2.5,10**3,10**3.5]
-    #PI_con=[10**2, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
-    PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
+    #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
     #PI_con=[10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6]
-    PI_con=[10**3.6]
+    iter = 30;
+    PI_con = [10**2.0]*iter + [10**2.2]*iter + [10**2.4]*iter + [10**2.6]*iter + [10**2.8]*iter + [10**3.0]*iter + [10**3.2]*iter + [10**3.4]*iter + [10**3.6]*iter + [10**3.8]*iter + [10**4.0]*iter
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
         print 'Transmitter Power:', Pi
-        
+        seed_int = np.random.randint(1,100)
+        print 'test seed: ', seed_int
+#         result_list=list(CCF_Model_Comparison(SearchAlgorithm,Pi,k_P_ratio*Pi))
+#         continue
         result_list=list(CCF_Model_Comparison([(SearchAlgorithm,Pi,k_P_ratio*Pi)]*num_batch))
         New_Rate_list=[result_list[i][1][0] for i in range(0,num_batch)]
         Rate_list=[result_list[i][1][1] for i in range(0,num_batch)]

@@ -5,6 +5,7 @@ from CoF_LLL import CoF_compute_fixed_pow_flex
 from NewSecondHopChannel import ComputeSecRate
 from sage.all import *
 from scipy import optimize
+import numpy as np
 import time
 from CoF_GA import *
 
@@ -97,7 +98,7 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
         cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex(x[0:L], P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[L:2*L-1])))
         Pranges = ((P_con/brute_number, P_con), )*L + ((float(beta_max)/brute_number, beta_max), )*(L-1)
     else:
-        cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex((P_con,)*L, P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[0:L-1])))
+        cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex((P_con,)*L, P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,] + list(x[0:L-1])))
         Pranges = ((0.01, beta_max), )*(L-1)
         
     try:
@@ -126,7 +127,11 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
             #Pranges=[(float(beta_max)/brute_number, beta_max)]
             #test program running time cost
             t1=time.time()
-            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges, maxiter = 50, disp = True)
+            set_random_seed()
+            seed_int = np.random.randint(1,100)
+            print 'CCF seed: ', seed_int
+            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges, maxiter = 50, seed = seed_int, disp = False)
+            #return [0]*(L),0
             t2=time.time()
             t=t2-t1
             P_opt=res_brute.x
@@ -143,7 +148,7 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
     # retrun beta to check the feasiblility
     is_return_beta = True
     if is_return_beta:
-        return sum_rate_opt, P_opt
+        return sum_rate_opt, vector(RR, [1,] + list(res_brute.x))
     else:
         return sum_rate_opt
 

@@ -191,8 +191,8 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
     #-------------------------------
     fix_pow = True
     if fix_pow:#fixed source power
-        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), [P_con]*L, H_a, rate_sec_hop, per_c)
-        Pranges=((0.01,betaScale_max),)*(L) #L beta and L source power 
+        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, [1,] + list(x[0:L-1])), [P_con]*L, H_a, rate_sec_hop, per_c)
+        Pranges=((0.01,betaScale_max),)*(L-1) #L beta and L source power 
     else:# optimize source power
         CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2*L], H_a, rate_sec_hop, per_c)
         Pranges=((0.01,betaScale_max),)*(L)+((0.01,P_con),)*L #L beta and L source power 
@@ -201,7 +201,11 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
         #test program running time cost
         t1=time.time()
         try:
-            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=50, disp=True)
+            set_random_seed()
+            seed_int = np.random.randint(1,100)
+            print 'NCCF seed: ', seed_int
+            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=50, seed = seed_int, disp=False)
+            #return [0]*(L-1),0
         except:
             print 'error in differential evolution algorithm'
             raise

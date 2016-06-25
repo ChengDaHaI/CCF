@@ -55,8 +55,8 @@ if __name__ == '__main__':
 #     print 'sum rate of decode and forward Scheme is \n', DF_rate, AF_rate
     print 'Simulation Start!\n'
     t1=time.time()
-    num_batch=120
-    is_dual_hop=True
+    num_batch = 240
+
     PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
     sum_rate_list=[]#save the sum_rate list of two scheme
     DF_rate_list=[]

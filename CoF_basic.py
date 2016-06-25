@@ -1,10 +1,10 @@
 import copy
 from sage.all import *
 import math
+from NEW_basic import L, M
 
-
-L = 3 # L transmitters
-M = 3 # M relays
+# L = 4 # L transmitters
+# M = 4 # M relays
 p = 17 # The prime number
 
 Cores = 8 # The number of CPU cores used in parallel computing

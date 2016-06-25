@@ -10,7 +10,16 @@ p=17
 #P_con=1000
 k_P_ratio=0.25
 betaScale_max=4
-Cores = 20
+Cores = 1
+
+set_HaHb = True
+
+set_H_a = matrix(RR, 3, 3, [[  0.699276348994144,   0.979966803608800,   0.731095879215959],\
+                            [-0.0467540769081729,   0.253952649489866,  -0.775007249377646],\
+                            [  0.669860797898610,   0.183608409840893,  -0.343789835395397]])
+                              
+set_H_b = matrix(RR, 1, 3, [-0.622194984940395, -0.563158590610974, -0.777483868327708])
+
 SearchAlgorithm="differential_evolution"
 #H_a=matrix.random(RR, L, M, distribution=RealDistribution('gaussian', 1))
 #produce the second channel matrix
