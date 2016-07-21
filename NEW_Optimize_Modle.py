@@ -149,76 +149,70 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c):
         per_s.append(max_beta_index)
         beta[max_beta_index]=0
     
-    #compute the coefficient of rate pieces of the conditional entropy 
-    entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
-    t1=time.time()
-    Res=Linear_Program(entropy_coefficient_list,SecChannel_constiant,source_rate_upbound_list,per_s,per_c,beta2_power)
-    #========#
-    t2=time.time()
-    t=t2-t1
+    #compute the coefficient of rate pieces of the conditional entropy
+
+    if per_c == []:
+        max_sum_rate = 0
+        for code_order in itertools.permutations(list(range(0, L)), L):
+            per_c = list(code_order)
+            entropy_coefficient_list=Relay_Forward_Rate(per_s,per_c,A)
+            t1=time.time()
+            Res=Linear_Program(entropy_coefficient_list,SecChannel_constiant,source_rate_upbound_list,per_s,per_c,beta2_power)
+            #========#
+            t2=time.time()
+            #print 'linear programming time cost:', t2 - t1
+            if max_sum_rate > Res:
+                max_sum_rate = copy.copy(Res)
+        Res = copy.copy(max_sum_rate)
+    else:
+        entropy_coefficient_list = Relay_Forward_Rate(per_s, per_c, A)
+        t1 = time.time()
+        Res = Linear_Program(entropy_coefficient_list, SecChannel_constiant, source_rate_upbound_list, per_s, per_c,
+                             beta2_power)
+        # ========#
+        t2 = time.time()
+        print 'linear programming time cost:', t2 - t1
     return Res
     
     
     #-------------------------------------------
     #        The main optimization function
     #------------------------------------------
-def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay,per_c=[]):
+def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
     '''
     CCF_beta_func=lambda x: CCF_sumrate_compute(vector(RR, [1,]+list(x[0:L-1])), H_a, H_b, P_con, P_relay, per_s, per_c)
     '''
-    if per_c==[]:
-        #compute the proper coding lattice order
-        H_a_col_min=[]
-        H_a_trans=H_a.transpose()
-        H_a_trans=list(H_a_trans)
-        for i in range(L):
-            for j in range(L):
-                temp=math.fabs(H_a_trans[i][j])
-                H_a_trans[i][j]=copy.copy(temp)
-            H_a_col_min.append(min(H_a_trans[i]))
-        per_c=[]
-        for i in range(L):
-            H_a_colmin_max=max(H_a_col_min)
-            H_a_colmin_max_index=H_a_col_min.index(H_a_colmin_max)
-            per_c.append(H_a_colmin_max_index)
-            H_a_col_min[H_a_colmin_max_index]=0
-
-        per_c.reverse()#a larger channel coefficient corresponds to a finer coding lattice
-        
-    #perform differential evolution 
-    #-------------------------------------------
-    # the variables are L beta and L source power
-    #-------------------------------
     fix_pow = True
-    if fix_pow:#fixed source power
-        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, [1,] + list(x[0:L-1])), [P_con]*L, H_a, rate_sec_hop, per_c)
-        Pranges=((0.01,betaScale_max),)*(L-1) #L beta and L source power 
-    else:# optimize source power
-        CCF_beta_func=lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2*L], H_a, rate_sec_hop, per_c)
-        Pranges=((0.01,betaScale_max),)*(L)+((0.01,P_con),)*L #L beta and L source power 
-    
-    if P_Search_Alg=='differential_evolution':
-        #test program running time cost
-        t1=time.time()
+    if fix_pow:  # fixed source power
+        CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), [P_con] * L, H_a,
+                                                       rate_sec_hop, per_c)
+        Pranges = ((0.01, betaScale_max),) * (L - 1)  # L beta and L source power
+    else:  # optimize source power
+        CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop,
+                                                       per_c)
+        Pranges = ((0.01, betaScale_max),) * (L) + ((0.01, P_con),) * L  # L beta and L source power
+
+    if P_Search_Alg == 'differential_evolution':
+        # test program running time cost
+        t1 = time.time()
         try:
-            set_random_seed()
-            seed_int = np.random.randint(1,100)
-            print 'NCCF seed: ', seed_int
-            ResSearch=optimize.differential_evolution(CCF_beta_func,Pranges, maxiter=50, seed = seed_int, disp=False)
-            #return [0]*(L-1),0
+            # set_random_seed()
+            # seed_int = np.random.randint(1,100)
+            seed_int = randint(1, 100)
+            #             print 'NCCF seed: ', seed_int
+            # return [0]*(L),0
+            ResSearch = optimize.differential_evolution(CCF_beta_func, Pranges, maxiter=50, seed=seed_int,
+                                                        disp=False)
         except:
             print 'error in differential evolution algorithm'
             raise
-        t2=time.time()
-        t=t2-t1
-        beta_opt=ResSearch.x
-        # print 'optimal beta and source power(new)', beta_opt
-        sum_rate_opt=-ResSearch.fun
+        t2 = time.time()
+        t = t2 - t1
         print 'New CCF Differential Evolution:', ResSearch.success
-        # print 'maximum sum source rate(new)', sum_rate_opt
-    else:
-        Exception("error: Not Such Search Algorithm!")
-    return beta_opt, sum_rate_opt
+        beta_opt = ResSearch.x
+        # print 'optimal beta and source power(new)', beta_opt
+        sum_rate_opt = -ResSearch.fun
+    return vector(RR, [1,] + list(beta_opt)), sum_rate_opt
     
 
 if __name__=="__main__":

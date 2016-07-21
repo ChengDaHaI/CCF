@@ -55,9 +55,9 @@ if __name__ == '__main__':
 #     print 'sum rate of decode and forward Scheme is \n', DF_rate, AF_rate
     print 'Simulation Start!\n'
     t1=time.time()
-    num_batch = 240
+    num_batch = 800
 
-    PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
+    PI_con=[10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
     sum_rate_list=[]#save the sum_rate list of two scheme
     DF_rate_list=[]
     AF_rate_list=[]
@@ -87,4 +87,5 @@ if __name__ == '__main__':
     plot_compare=plot_DF+plot_AF
     plot_compare.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
     plot_compare.set_legend_options(loc='upper left')
+    plot_compare.save('/home/haizi/Pictures/Results/' + 'DF_AF' + time.ctime() + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + '.eps')
     plot_compare.show(gridlines=True)
