@@ -28,25 +28,7 @@ def Relay_Forward_Rate(per_s,per_c,A):
         raise Exception('per_c and per_s should have the same length')
     elif len(per_c)!=L:
         raise Exception('per_c and per_s should have %i elements'%L)
-    #get  beta_s and beta_c after the permutation operation
-    '''
-    per_beta_s=[beta_s[per_s[i]] for i in per_s]
-    per_beta_c=[beta_c[per_c[i]] for i in per_c]
-    #incorrect code about list
-    #per_beta=[per_beta_s,per_beta_c]
-    #beta=[beta_s,beta_c]
-    per_beta=per_beta_s+per_beta_c
-    beta=beta_s+beta_c
-    #compute the total rate in sources
-    rate_total=0#the total rate in sources
-    for i in range(0,L):
-        rate_total+=log(per_beta_s[i]/per_beta_c[i],2)
-    #compute the rate pieces
-    #suppose there isn't two same lattice.
-    rate_piece=[0]*(2*L-1)#the rate pieces divided by nested lattices
-    for i in range(0,2*L-1):
-        rate_piece[i]=0.5*log(beta[i]/beta[i+1],2)
-    '''
+
     #produce subset list
     subset_list=list(Powerset(range(0,L)))
     set_L=set(range(0,L))

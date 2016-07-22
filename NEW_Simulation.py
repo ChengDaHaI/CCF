@@ -51,7 +51,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     
     sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con,H_a,True, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
     
-    if True:
+    if False:
         # check the feasibility of beta_pow_opt
         try:
             is_feasible, per_c, rate_piece = Opt_feasible_check(beta_pow_opt, sum_rate_opt, P_con,  H_a, rate_sec_hop)
@@ -269,7 +269,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
-    num_batch = 480
+    num_batch = 1
     sum_rate=[]
     New_sum_rate=[]
     New_sum_time=[]
@@ -283,7 +283,7 @@ if __name__=="__main__":
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
     #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0]
     #PI_con = [10 ** 1.2, 10 ** 1.4]
-    PI_con=[ 10**2.6, 10**2.8, 10**3.0]
+    PI_con=[10**3.0]
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
@@ -371,7 +371,7 @@ if __name__=="__main__":
     print 'better perfermance probability: ', better_channel_prob
     PI_dB=[10*log10(P_con) for P_con in PI_con]
     Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate))
-    if True:
+    if False:
         np.savetxt('/home/haizi/Pictures/Results/TxtFile/' + time.ctime() + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
     
         plot_rate=list_plot(zip(PI_dB,sum_rate),plotjoined=True, marker='d', \

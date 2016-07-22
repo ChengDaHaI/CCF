@@ -6,9 +6,10 @@ The ShangHaiTech University
 '''
 from sage.all import *
 from NEW_CCF_Modle import Relay_Forward_Rate, Powerset
-from NewSecondHopChannel import ComputeSecRate
+#from NewSecondHopChannel import ComputeSecRate
 from scipy import optimize
 from CoF_LLL import Find_A_and_Rate
+from NEW_general_optimize_model import GCCF_new_sumrate_func
 from NEW_basic import *
 import math
 import time
@@ -183,13 +184,20 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
     CCF_beta_func=lambda x: CCF_sumrate_compute(vector(RR, [1,]+list(x[0:L-1])), H_a, H_b, P_con, P_relay, per_s, per_c)
     '''
     fix_pow = True
+    GCCF = True
     if fix_pow:  # fixed source power
-        CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), [P_con] * L, H_a,
+        if GCCF:
+            CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), [P_con] * L, H_a,
+                                                       rate_sec_hop)
+        else:
+            CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), [P_con] * L, H_a,
                                                        rate_sec_hop, per_c)
         Pranges = ((0.01, betaScale_max),) * (L - 1)  # L beta and L source power
     else:  # optimize source power
-        CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop,
-                                                       per_c)
+        if GCCF:
+            CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop)
+        else:
+            CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop, per_c)
         Pranges = ((0.01, betaScale_max),) * (L) + ((0.01, P_con),) * L  # L beta and L source power
 
     if P_Search_Alg == 'differential_evolution':

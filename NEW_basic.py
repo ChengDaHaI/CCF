@@ -1,6 +1,6 @@
 from sage.all import *
-L = 3
-M = 3
+L = 2
+M = 2
 p=17
 #A=Matrix([[1,2,3],[1,2,2],[2,1,3]])#matrix A must be full-rank
 #beta_s=[2.5,2.0,1.8]
