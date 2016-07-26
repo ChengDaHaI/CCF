@@ -129,16 +129,7 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c):
     #the second hop channel capacity constriant
     #SecChannel_constiant=ComputeSecRate(M,P_relay,H_b)
     SecChannel_constiant=rate_sec_hop
-    #test program running time cost
-    
-    #=======#
-    #compute the proper nested shaping lattice order from the betaScale
-    #------------------
-    #nested shaping lattice order is decided by betaScale and source power P_source
-    #-------------------
-    
-    #beta=copy.copy(betaScale)
-    # a larger (beta^2*power) corresponds to a coarse shping lattice
+
     beta2_power=list([betaScale[i]**2*P_source[i] for i in range(0,L)])
     
     beta=copy.copy(beta2_power)
@@ -188,14 +179,14 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
     if fix_pow:  # fixed source power
         if GCCF:
             CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), [P_con] * L, H_a,
-                                                       rate_sec_hop)
+                                                       rate_sec_hop, per_c)
         else:
             CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), [P_con] * L, H_a,
                                                        rate_sec_hop, per_c)
         Pranges = ((0.01, betaScale_max),) * (L - 1)  # L beta and L source power
     else:  # optimize source power
         if GCCF:
-            CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop)
+            CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop, per_c)
         else:
             CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop, per_c)
         Pranges = ((0.01, betaScale_max),) * (L) + ((0.01, P_con),) * L  # L beta and L source power

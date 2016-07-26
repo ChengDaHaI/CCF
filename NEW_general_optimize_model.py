@@ -125,9 +125,10 @@ def GCCF_coding_search_func(coding_lattice_voronoi, shaping_lattice_voronoi, per
         
     return -sum_rate
 
-def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop):
+def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
     
     (A, source_rate_list, coding_lattice_lowerbound) = CCF_computation_SourceRate_upbound(P_source, H_a, betaScale)
+    print 'integer coefficient matrix:\n', A
     shaping_lattice_voronoi = [P_source[i]*betaScale[i]**2 for i in range(L)]
     # compute per_s
     per_s = [0]*L
@@ -136,23 +137,287 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop):
         per_s[i] = coarse_voronoi.index(max(coarse_voronoi))
         coarse_voronoi[per_s[i]] = 0
     
-    # optimize the voronoi of coding lattice 
-    GCCF_coding_func = lambda x: GCCF_coding_search_func(vector(RR, [1, ] + list(x[0:L - 1])), shaping_lattice_voronoi, per_s, A,
-                                                       rate_sec_hop)
-    Pranges = [(coding_lattice_lowerbound[i], shaping_lattice_voronoi[i]) for i in range(L)]
-    t1 = time.time()
-    try:
-        seed_int = randint(1, 100)
-        ResSearch = optimize.differential_evolution(GCCF_coding_func, Pranges, maxiter=50, seed=seed_int,
-                                                    disp=False)
-    except:
-        print 'error in differential evolution algorithm'
-        raise
-    t2 = time.time()
-    t = t2 - t1
-    print 'New CCF Differential Evolution:', ResSearch.success
-    coding_lattice_opt = ResSearch.x
-    sum_rate_opt = ResSearch.fun
+    #produce subset list
+    subset_list=list(Powerset(range(0,L)))
+    set_L=set(range(0,L))
     
-    return sum_rate_opt
+    # list for linear program
+    # fixed rate component
+    rate_comp_fix = []
+    rate_comp_fix_index = []
+    # objective function coefficient
+    obj_func = []
+    obj_func_fix = []
+    # coefficients of source rate to be optimize
+    source_coef = [0]*L
+    # fixed part
+    source_coef_fix = [0]*L 
+    # coefficients of compression rate region bounds to be optimize
+    entropy_coef = [0]*(pow(2,L)-1)
+    # fixed part
+    entropy_coef_fix = [0]*(pow(2,L)-1) 
     
+    if per_c == [0,0,0]:
+        print 'when per_c =', per_c, ':\n'
+        obj_func = [1,1,1]
+        source_coef = [[0]*3]*3
+        for i in range(L):
+            temp = copy.copy(source_coef[i])
+            temp[per_s.index(i)] = 1
+            source_coef[i] = copy.copy(temp)
+        # sub matrix column index, i.e., the source index corresponding to each rate component
+        comp_source_set = [[per_s[0]], [per_s[1]], [per_s[2]]]
+        #for every subset, we first calculate the sub-matrix 
+        #then calculate the coefficients
+        for i in range(1,len(subset_list)):
+            piece_coefficient=[]
+            subset=set(subset_list[i])
+            complement_set=set_L.difference(subset)
+            row=[]#sub-matrix row index
+            row.extend(list(complement_set))
+            
+            rank_value=0
+            for j in range(len(comp_source_set)):
+                colum = comp_source_set[j] #sub-matrix colum index
+                sub_A = A[row,colum]
+                rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
+                #record the coefficient of rate pieces
+                #that is also the i row of transform matrix between  
+                #conditional_entropy list and rate_piece list
+                piece_coefficient.append(rank_value)
+            entropy_coef[i-1]=piece_coefficient
+    elif per_c == [1,1,1]:
+        print 'when per_c =', per_c, ':\n'
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
+        rate_comp_fix_index = [1]
+        obj_func = [1,2,1]
+        obj_func_fix = [1]
+        source_coef_fix[per_s[1]] = 1
+        source_coef = [[0]*3]*3
+        for i in range(L):
+            temp = copy.copy(source_coef[i])
+            if per_s.index(i) != 2:
+                temp[per_s.index(i)] = 1
+                source_coef[i] = copy.copy(temp)
+            else:
+                temp[1:3] = [1,1]
+                source_coef[i] = copy.copy(temp)
+        comp_source_set = [[per_s[0]], [per_s[1]], [per_s[1], per_s[2]], [per_s[2]]]
+        #for every subset, we first calculate the sub-matrix 
+        #then calculate the coefficients
+        for i in range(1,len(subset_list)):
+            piece_coefficient=[]
+            subset=set(subset_list[i])
+            complement_set=set_L.difference(subset)
+            row=[]#sub-matrix row index
+            row.extend(list(complement_set))
+            
+            rank_value=0
+            for j in range(len(comp_source_set)):
+                colum = comp_source_set[j] #sub-matrix colum index
+                sub_A = A[row,colum]
+                rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
+                #record the coefficient of rate pieces
+                #that is also the i row of transform matrix between  
+                #conditional_entropy list and rate_piece list
+                piece_coefficient.append(rank_value)
+            temp = []
+            for k in range(len(rate_comp_fix_index)):
+                temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
+            entropy_coef_fix[i-1] = temp
+            entropy_coef[i-1] = piece_coefficient
+    elif per_c == [2,2,2]:
+        print 'when per_c =', per_c, ':\n'
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
+        rate_comp_fix_index = [1]
+        obj_func = [1,2,1]
+        obj_func_fix = [1]
+        source_coef_fix[per_s[1]] = 1
+        source_coef = [[0]*3]*3
+        source_coef[per_s[0]] = copy.copy([1,0,0])
+        source_coef[per_s[1]] = copy.copy([0,1,1])
+        source_coef[per_s[2]] = copy.copy([0,1,0])
+        comp_source_set = [[per_s[0]], [per_s[1]], [per_s[1], per_s[2]], [per_s[1]]]
+        #for every subset, we first calculate the sub-matrix 
+        #then calculate the coefficients
+        for i in range(1,len(subset_list)):
+            piece_coefficient=[]
+            subset=set(subset_list[i])
+            complement_set=set_L.difference(subset)
+            row=[]#sub-matrix row index
+            row.extend(list(complement_set))
+            
+            rank_value=0
+            for j in range(len(comp_source_set)):
+                colum = comp_source_set[j] #sub-matrix colum index
+                sub_A = A[row,colum]
+                rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
+                #record the coefficient of rate pieces
+                #that is also the i row of transform matrix between  
+                #conditional_entropy list and rate_piece list
+                piece_coefficient.append(rank_value)
+            temp = []
+            for k in range(len(rate_comp_fix_index)):
+                temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
+            entropy_coef_fix[i-1] = copy.copy(temp)
+            entropy_coef[i-1] = piece_coefficient
+    elif per_c == [3,3,3]:
+        print 'when per_c =', per_c, ':\n'
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
+        rate_comp_fix_index = [0]
+        obj_func = [2,1,1]
+        obj_func_fix = [1]
+        source_coef_fix[per_s[0]] = 1
+        source_coef = [[0]*3]*3
+        source_coef[per_s[0]] = copy.copy([1,0,0])
+        source_coef[per_s[1]] = copy.copy([1,1,0])
+        source_coef[per_s[2]] = copy.copy([0,0,1])
+        comp_source_set = [[per_s[0]], [per_s[0], per_s[1]], [per_s[1]], [per_s[2]]]
+        #for every subset, we first calculate the sub-matrix 
+        #then calculate the coefficients
+        for i in range(1,len(subset_list)):
+            piece_coefficient=[]
+            subset=set(subset_list[i])
+            complement_set=set_L.difference(subset)
+            row=[]#sub-matrix row index
+            row.extend(list(complement_set))
+            
+            rank_value=0
+            for j in range(len(comp_source_set)):
+                colum = comp_source_set[j] #sub-matrix colum index
+                sub_A = A[row,colum]
+                rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
+                #record the coefficient of rate pieces
+                #that is also the i row of transform matrix between  
+                #conditional_entropy list and rate_piece list
+                piece_coefficient.append(rank_value)
+            temp = []
+            for k in range(len(rate_comp_fix_index)):
+                temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
+            entropy_coef_fix[i-1] = copy.copy(temp)
+            entropy_coef[i-1] = piece_coefficient
+    elif per_c == [4,4,4]:
+        print 'when per_c =', per_c, ':\n'
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
+        rate_comp_fix_index = [0]
+        obj_func = [2,1,1]
+        obj_func_fix = [1]
+        source_coef_fix[per_s[0]] = 1
+        source_coef = [[0]*3]*3
+        source_coef[per_s[0]] = copy.copy([1,1,0])
+        source_coef[per_s[1]] = copy.copy([1,0,0])
+        source_coef[per_s[2]] = copy.copy([0,0,1])
+        comp_source_set = [[per_s[0]], [per_s[0], per_s[1]], [per_s[0]], [per_s[2]]]
+        #for every subset, we first calculate the sub-matrix 
+        #then calculate the coefficients
+        for i in range(1,len(subset_list)):
+            piece_coefficient=[]
+            subset=set(subset_list[i])
+            complement_set=set_L.difference(subset)
+            row=[]#sub-matrix row index
+            row.extend(list(complement_set))
+            
+            rank_value=0
+            for j in range(len(comp_source_set)):
+                colum = comp_source_set[j] #sub-matrix colum index
+                sub_A = A[row,colum]
+                rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
+                #record the coefficient of rate pieces
+                #that is also the i row of transform matrix between  
+                #conditional_entropy list and rate_piece list
+                piece_coefficient.append(rank_value)
+            temp = []
+            for k in range(len(rate_comp_fix_index)):
+                temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
+            entropy_coef_fix[i-1] = copy.copy(temp)
+            entropy_coef[i-1] = piece_coefficient
+    elif per_c == [5,5,5]:
+        print 'when per_c =', per_c, ':\n'
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
+        rate_comp_fix_index = [0,1]
+        obj_func = [1,2,1]
+        obj_func_fix = [1,1]
+        source_coef_fix[per_s[0]] = [1,0]
+        source_coef_fix[per_s[1]] = [0,1]
+        source_coef_fix[per_s[2]] = [0,0]
+        source_coef = [[0]*3]*3
+        source_coef[per_s[0]] = copy.copy([1,0,0])
+        source_coef[per_s[1]] = copy.copy([0,1,0])
+        source_coef[per_s[2]] = copy.copy([0,1,1])
+        comp_source_set = [[per_s[0]], [per_s[1]], [per_s[0]], [per_s[1]], [per_s[1], per_s[2]]]
+        #for every subset, we first calculate the sub-matrix 
+        #then calculate the coefficients
+        for i in range(1,len(subset_list)):
+            piece_coefficient=[]
+            subset=set(subset_list[i])
+            complement_set=set_L.difference(subset)
+            row=[]#sub-matrix row index
+            row.extend(list(complement_set))
+            
+            rank_value=0
+            for j in range(len(comp_source_set)):
+                colum = comp_source_set[j] #sub-matrix colum index
+                sub_A = A[row,colum]
+                rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
+                #record the coefficient of rate pieces
+                #that is also the i row of transform matrix between  
+                #conditional_entropy list and rate_piece list
+                piece_coefficient.append(rank_value)
+            temp = []
+            for k in range(len(rate_comp_fix_index)):
+                temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
+            entropy_coef_fix[i-1] = copy.copy(temp)
+            entropy_coef[i-1] = piece_coefficient
+    elif per_c == [6,6,6]:
+        print 'when per_c =', per_c, ':\n'
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
+        rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
+        rate_comp_fix_index = [0,1]
+        obj_func = [1,2,1]
+        obj_func_fix = [1,1]
+        source_coef_fix[per_s[0]] = [1,0]
+        source_coef_fix[per_s[1]] = [0,1]
+        source_coef_fix[per_s[2]] = [0,0]
+        source_coef = [[0]*3]*3
+        source_coef[per_s[0]] = copy.copy([1,0,0])
+        source_coef[per_s[1]] = copy.copy([0,1,1])
+        source_coef[per_s[2]] = copy.copy([0,1,0])
+        comp_source_set = [[per_s[0]], [per_s[1]], [per_s[0]], [per_s[1], per_s[2]], [per_s[1]]]
+        #for every subset, we first calculate the sub-matrix 
+        #then calculate the coefficients
+        for i in range(1,len(subset_list)):
+            piece_coefficient=[]
+            subset=set(subset_list[i])
+            complement_set=set_L.difference(subset)
+            row=[]#sub-matrix row index
+            row.extend(list(complement_set))
+            
+            rank_value=0
+            for j in range(len(comp_source_set)):
+                colum = comp_source_set[j] #sub-matrix colum index
+                sub_A = A[row,colum]
+                rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
+                #record the coefficient of rate pieces
+                #that is also the i row of transform matrix between  
+                #conditional_entropy list and rate_piece list
+                piece_coefficient.append(rank_value)
+            temp = []
+            for k in range(len(rate_comp_fix_index)):
+                temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
+            entropy_coef_fix[i-1] = copy.copy(temp)
+            entropy_coef[i-1] = piece_coefficient
+    print 'Done!\n'
+    return rate_comp_fix, rate_comp_fix_index, obj_func, obj_func_fix, source_coef, source_coef_fix, entropy_coef, entropy_coef_fix
+
+
+if __name__ == '__main__':
+    betaScale = vector(RR, [1,1,1])
+    P_source = [100,1000,800]
+    H_a = matrix(RR, 3, 3, [[  0.699276348994144,   0.979966803608800,   0.731095879215959],
+                            [-0.0467540769081729,  0.253952649489866,  -0.775007249377646],
+                            [  0.669860797898610,   0.183608409840893,  -0.343789835395397]])
+    rate_sec_hop = []
+    per_c = [5,5,5]
+    [a,b,c,d,e,f,h,i] = GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c)
+    print a, b, c, d, e, f, h, i
