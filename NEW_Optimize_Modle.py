@@ -166,7 +166,7 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c):
         print 'linear programming time cost:', t2 - t1
     return Res
     
-    
+
     #-------------------------------------------
     #        The main optimization function
     #------------------------------------------
@@ -177,7 +177,8 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
     fix_pow = True
     GCCF = True
     if fix_pow:  # fixed source power
-        if GCCF:
+        
+        if per_c[0] == per_c[1]:# GCCF
             CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), [P_con] * L, H_a,
                                                        rate_sec_hop, per_c)
         else:
@@ -185,21 +186,17 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
                                                        rate_sec_hop, per_c)
         Pranges = ((0.01, betaScale_max),) * (L - 1)  # L beta and L source power
     else:  # optimize source power
-        if GCCF:
+        if per_c[0] == per_c[1]:# GCCF
             CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop, per_c)
         else:
             CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, list(x[0:L])), x[L:2 * L], H_a, rate_sec_hop, per_c)
-        Pranges = ((0.01, betaScale_max),) * (L) + ((0.01, P_con),) * L  # L beta and L source power
+        Pranges = ((0.01, betaScale_max),) * L + ((0.01, P_con),) * L  # L beta and L source power
 
     if P_Search_Alg == 'differential_evolution':
         # test program running time cost
         t1 = time.time()
         try:
-            # set_random_seed()
-            # seed_int = np.random.randint(1,100)
-            seed_int = randint(1, 100)
-            #             print 'NCCF seed: ', seed_int
-            # return [0]*(L),0
+            seed_int = randint(1, 1000)
             ResSearch = optimize.differential_evolution(CCF_beta_func, Pranges, maxiter=50, seed=seed_int,
                                                         disp=False)
         except:

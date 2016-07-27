@@ -82,10 +82,11 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
 
     Max_New_sum_rate = 0
     per_c = []
-    out_per_c_search = False
+    out_per_c_search = True
+#     + [[0, 0, 0],[1, 1, 1],[2, 2, 2],[3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7],[8, 8, 8]]
     if out_per_c_search:
         for code_order in itertools.permutations(list(range(0, L)), L):
-            per_c=list(code_order)
+            per_c = list(code_order) 
             # print 'coding lattice permutation: ', per_c
             tic = time.time()
             (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
@@ -198,11 +199,6 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
         per_s.append(max_beta_index)
         beta[max_beta_index]=0
     
-    
-    if max(coding_lattice) >= min(shaping_lattice):
-        pass
-        #print 'The lattice nested order in Original CCF is mixed! Not the Same as New CCF'
-    
     # compute the all 2*L-1 rate pieces
     rate_piece = [0]*(2*L-1)
     for i in range(2*L-1):
@@ -212,6 +208,14 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
             rate_piece[i] = max(0.5*np.log2(shaping_lattice[per_s[i]]/coding_lattice[per_c[i-(L-1)]]), 0)
         elif i >= L:
             rate_piece[i] = max(0.5*np.log2(coding_lattice[per_c[i-L]]/coding_lattice[per_c[i-(L-1)]]), 0)
+    
+    
+    feasible_flag = True
+    if max(coding_lattice) >= min(shaping_lattice):
+        print 'The lattice nested order in Original CCF is mixed! Not the Same as New CCF'
+        feasible_flag = False
+        return feasible_flag, per_c, rate_piece
+    
     
     
     #compute the coefficient of rate pieces of the conditional entropy 
@@ -256,13 +260,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
             continue
         else:
             feasible_flag = False
-            # print 'constriant', i+1, 'is not satisfied!'
-            #raise
-            #break
-    
-    if feasible_flag:
-        pass
-        # print 'All constriants are satisfied!'
+            print 'constriant', i+1, 'is not satisfied!'
     
     return feasible_flag, per_c, rate_piece# return the logical value, codingl lattice permutation, rate_piece
     
