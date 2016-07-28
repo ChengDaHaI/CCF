@@ -161,7 +161,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
     entropy_coef_fix = [0]*(pow(2,L)-1) 
     
     if per_c == [0,0,0]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append(0)
         obj_func = [1,1,1]
         source_coef = [[0]*3]*3
@@ -173,7 +172,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         comp_source_set = [[per_s[0]], [per_s[1]], [per_s[2]]]
         
     elif per_c == [1,1,1]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
         rate_comp_fix_index = [1]
         obj_func = [1,2,1]
@@ -215,7 +213,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
 #                 entropy_coef_fix[i-1] = temp
 #             entropy_coef[i-1] = piece_coefficient
     elif per_c == [2,2,2]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
         rate_comp_fix_index = [1]
         obj_func = [1,2,1]
@@ -250,7 +247,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
 #             entropy_coef_fix[i-1] = copy.copy(temp)
 #             entropy_coef[i-1] = piece_coefficient
     elif per_c == [3,3,3]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         rate_comp_fix_index = [0]
         obj_func = [2,1,1]
@@ -285,7 +281,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
 #             entropy_coef_fix[i-1] = copy.copy(temp)
 #             entropy_coef[i-1] = piece_coefficient
     elif per_c == [4,4,4]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         rate_comp_fix_index = [0]
         obj_func = [2,1,1]
@@ -320,7 +315,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
 #             entropy_coef_fix[i-1] = copy.copy(temp)
 #             entropy_coef[i-1] = piece_coefficient
     elif per_c == [5,5,5]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
         rate_comp_fix_index = [0]
@@ -358,7 +352,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
 #             entropy_coef_fix[i-1] = copy.copy(temp)
 #             entropy_coef[i-1] = piece_coefficient
     elif per_c == [6,6,6]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
         rate_comp_fix_index = [0]
@@ -396,7 +389,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
 #             entropy_coef_fix[i-1] = copy.copy(temp)
 #             entropy_coef[i-1] = piece_coefficient
     elif per_c == [7,7,7]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
         rate_comp_fix_index = [0]
@@ -434,7 +426,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
 #             entropy_coef_fix[i-1] = copy.copy(temp)
 #             entropy_coef[i-1] = piece_coefficient
     elif per_c == [8,8,8]:
-        print 'when per_c =', per_c, ':\n'
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
         rate_comp_fix_index = [0]
@@ -499,7 +490,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
     opt_sum_rate = GCCF_linear_prog(obj_func, obj_func_fix, rate_comp_fix, rate_comp_fix_index, source_coef, source_coef_fix, \
                      entropy_coef, entropy_coef_fix, source_rate_list, shaping_lattice_voronoi, per_c, per_s, rate_sec_hop)
     
-    print 'Done!\n'
     return opt_sum_rate
 
 # applying linear programming to optimize the sum rate

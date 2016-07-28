@@ -163,7 +163,7 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c):
                              beta2_power)
         # ========#
         t2 = time.time()
-        print 'linear programming time cost:', t2 - t1
+        #print 'linear programming time cost:', t2 - t1
     return Res
     
 

@@ -26,23 +26,14 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     if set_HaHb == True:
         H_a = set_H_a
         H_b = set_H_b
-        '''
-        H_a = matrix(RR, M, L, [ [-0.604774174080910, -0.516611703927027, 0.0251878692137226],\
-                                [-0.350171195717287,  0.814517492278491, -0.236238019733556],\
-                                [ 0.232228528459459, -0.518860603180491,  0.973647111105997]])
-        H_b = matrix(RR, 1, L, [ 0.227086968428515,  0.682635663808828, -0.814728906414353])
-        print 'H_a:', H_a
-        print 'H_b:', H_b
-        print 'Transmitter Power:', P_con
-        '''
         
     else:   
         H_a = matrix.random(RR, M, L, distribution = RealDistribution('gaussian', 1))
         # second hop channel is parallel
         H_b = matrix.random(RR, 1, M, distribution = RealDistribution('gaussian', 1))
         
-        #print 'H_a:', H_a
-        #print 'H_b:', H_b
+        print 'H_a:', H_a
+        print 'H_b:', H_b
         #print 'Transmitter Power:', P_con
         
     #second hop channel capacity, 2**L-1 inequalities
@@ -51,39 +42,43 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     
     sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con,H_a,True, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
     
-    if False:
+    if True:
         # check the feasibility of beta_pow_opt
         try:
-            is_feasible, per_c, rate_piece = Opt_feasible_check(beta_pow_opt, sum_rate_opt, P_con,  H_a, rate_sec_hop)
+            nested_order_flag, per_c= Opt_feasible_check(beta_pow_opt, sum_rate_opt, P_con,  H_a, rate_sec_hop)
         except:
             print 'Error in Opt_feasible_check function !'
             raise
         
-        if is_feasible:
+        # print the channel with mixed nested order
+        if nested_order_flag == False:
+            print 'H_a:\n', H_a
+            print 'H_b:\n', H_b
             
-            # put the optimal solution beta_pow_opt into our NEW CCF system
-            try:
-                #true_beta = vector(RR, [1,] + list(beta_pow_opt))
-                #true_beta = vector(RR, list(beta_pow_opt))
-                true_beta = beta_pow_opt
-                LP_res = CCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, per_c)
-                
-            except:
-                print 'Error In Check The Optimal Solution to NEW CCF system!'
-                raise
-            # print 'When put beta_pow_opt & per_c into OUR NEW CCF system, the sum rate is:', -LP_res
-            
-        else:
-            # if the optimal solution is infeasible in NEW CCF system, we set the sum rate to zero.
-            return 0, 0 ,0, 0, 0, 0, 0 #New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), invalid chanel realization
+        if False:# comment the part of code, due to 3*3 GCCF simulation
+            if nested_order_flag:
+                # put the optimal solution beta_pow_opt into our NEW CCF system
+                try:
+                    #true_beta = vector(RR, [1,] + list(beta_pow_opt))
+                    #true_beta = vector(RR, list(beta_pow_opt))
+                    true_beta = beta_pow_opt
+                    LP_res = CCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, per_c)
+                except:
+                    print 'Error In Check The Optimal Solution to NEW CCF system!'
+                    raise
+                # print 'When put beta_pow_opt & per_c into OUR NEW CCF system, the sum rate is:', -LP_res
+            else:
+                # if the optimal solution is infeasible in NEW CCF system, we set the sum rate to zero.
+                return 0, 0 ,0, 0, 0, 0, 0 #New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), invalid chanel realization
         
     t2=time.time()
     print 'CCF time cost: ', (t2 - t1)
 
     Max_New_sum_rate = 0
-    per_c = []
-    out_per_c_search = True
-#     + [[0, 0, 0],[1, 1, 1],[2, 2, 2],[3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7],[8, 8, 8]]
+    
+    out_per_c_search = False
+    #per_c = []
+#   [[0, 0, 0],[1, 1, 1],[2, 2, 2],[3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7],[8, 8, 8]]
     if out_per_c_search:
         for code_order in itertools.permutations(list(range(0, L)), L):
             per_c = list(code_order) 
@@ -96,16 +91,13 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
                 Max_New_sum_rate = copy.copy(New_sum_rate_opt) 
         New_sum_rate_opt = copy.copy(Max_New_sum_rate)
     else:
+        # per_c is assigned with the output of Opt_feasible_check()
+        print 'per_c = :\n', per_c
         tic = time.time()
         (beta_opt, New_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
         toc = time.time()
         #print 'toc - tic:', (toc - tic)
     t3 = time.time()
-    # elif per_c_search==False:
-    #
-    #     #compute two permutation after differential evolution operation
-    #     (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, P_relay)
-    #     New_sumrate_fix_per_c = New_sum_rate_opt
     
     better_flag = 0# refer to compute the better channel probability
     if New_sum_rate_opt >= 1.05 * sum_rate_opt:
@@ -130,10 +122,6 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
     
     # transmitter power
     P_t = [P_con]*L
-    # all beta factor
-    #beta_opt = vector(RR, [1] + list(beta_opt))
-    #beta_opt = vector(RR, beta_opt)
-    #compute the shaping lattice and coding lattice of original CCF
     
     P_vec = vector(RR, P_t)
     P_mat = matrix.diagonal([sqrt(x) for x in P_vec])
@@ -173,6 +161,10 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
         print 'rank problem in check function'
         #raise
     
+    # processing coding lattice
+    for i in range(L):
+        if coding_lattice[i] > shaping_lattice[i]:
+           shaping_lattice[i] = coding_lattice[i] * 1.001
     # coding latice nested order
     per_c=[]
     H_a_col_min = copy.copy(coding_lattice)
@@ -181,9 +173,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
         H_a_colmin_max_index=H_a_col_min.index(H_a_colmin_max)
         per_c.append(H_a_colmin_max_index)
         H_a_col_min[H_a_colmin_max_index]=0
-    #a larger voronoi corresponds to a coarser coding lattice
     
-    #compute the proper nested shaping lattice order from the betaScale
     #------------------
     #nested shaping lattice order is decided by betaScale and source power P_source
     #-------------------
@@ -210,59 +200,91 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
             rate_piece[i] = max(0.5*np.log2(coding_lattice[per_c[i-L]]/coding_lattice[per_c[i-(L-1)]]), 0)
     
     
-    feasible_flag = True
-    if max(coding_lattice) >= min(shaping_lattice):
+    nested_order_flag = True # separable nested order
+    if max(coding_lattice) > min(shaping_lattice):
         print 'The lattice nested order in Original CCF is mixed! Not the Same as New CCF'
-        feasible_flag = False
-        return feasible_flag, per_c, rate_piece
-    
-    
-    
-    #compute the coefficient of rate pieces of the conditional entropy 
-    entropy_coefficient_list = Relay_Forward_Rate(per_s,per_c,A_best_LLL)
-    
-    # Main Part: check those result whethe satisfy My NEW_CCF system constriants
-    
-    #---------------------------
-    #     Construct the coefficients of constriants
-    #----------------------------
-    
-    # source rate is the coefficient list of rate pieces
-    SourseRate=[]
-    for i in range(L):
-        SourseRate.extend([[0]*(2*L-1)])
-    for i in range(0,L):
-        #piece_mount=per_c[i]-per_s[i]
-        for j in range(0,2*L-1):
-            #SourseRate[i][j]=[0]*(2*L-1)
-            if (j>=per_s.index(i))&(j<=per_c.index(i)+L-1):
-                SourseRate[i][j]=1
-    #construct the linear programming equation
-    channel_mode="parallel"
-    if channel_mode=="parallel":
-        A_ConstriantMatrix=SourseRate+entropy_coefficient_list
-        b_ConstriantVector=source_rate_upbound_list+rate_sec_hop[0:M]
-        #change the parallel channel capacity constraints
-        subset_list=list(Powerset(set(range(0,L))))
-        for i in range(L+1,len(subset_list)):
-            bound_sum=0
-            for j in subset_list[i]:
-                bound_sum=bound_sum+rate_sec_hop[j]
-            b_ConstriantVector.append(bound_sum)
-    elif channel_mode=="MAC":
-        b_ConstriantVector=source_rate_upbound_list+rate_sec_hop
-        A_ConstriantMatrix=SourseRate+entropy_coefficient_list
-    
-    feasible_flag = True
-    for i in range(len(A_ConstriantMatrix)):
-        temp = np.dot(np.array(A_ConstriantMatrix[i]), np.array(rate_piece))
-        if temp <= b_ConstriantVector[i] + temp * 10**(-5): # prevent the numerical error
-            continue
+        nested_order_flag = False # mixed nested order
+        if coding_lattice[per_s[0]] > shaping_lattice[per_s[1]]:
+            if coding_lattice[per_s[1]] > shaping_lattice[per_s[2]]:
+                per_c = [0,0,0]
+            elif coding_lattice[per_s[1]] > coding_lattice[per_s[2]]:
+                per_c = [1,1,1]
+            elif coding_lattice[per_s[1]] < coding_lattice[per_s[2]]:
+                per_c = [2,2,2]
+            else:
+                print 'Not such nested order!'
+                raise
+        elif coding_lattice[per_s[0]] > shaping_lattice[per_s[2]]:
+            if coding_lattice[per_s[1]] > shaping_lattice[per_s[2]]:
+                if coding_lattice[per_s[0]] < coding_lattice[per_s[1]]:
+                    per_c = [3,3,3]
+                elif coding_lattice[per_s[0]] > coding_lattice[per_s[1]]:
+                    per_c = [4,4,4]
+                else:
+                    print 'Not such nested order!'
+                    raise
+            elif coding_lattice[per_s[1]] > coding_lattice[per_s[2]]:
+                per_c = [5,5,5]
+            elif coding_lattice[per_s[1]] < coding_lattice[per_s[2]]:
+                per_c = [6,6,6]
+            else:
+                print 'Not such nested order!'
+                raise
+        elif coding_lattice[per_s[0]] < shaping_lattice[per_s[2]]:
+            if coding_lattice[per_s[0]] > coding_lattice[per_s[2]]:
+                per_c = [7,7,7]
+            else:
+                per_c = [8,8,8]
         else:
-            feasible_flag = False
-            print 'constriant', i+1, 'is not satisfied!'
+            print 'Not such nested order!'
+            raise
+    return nested_order_flag, per_c
     
-    return feasible_flag, per_c, rate_piece# return the logical value, codingl lattice permutation, rate_piece
+    
+    
+    if False:
+        # Main Part: check those result whethe satisfy My NEW_CCF system constriants
+        #compute the coefficient of rate pieces of the conditional entropy 
+        entropy_coefficient_list = Relay_Forward_Rate(per_s,per_c,A_best_LLL)
+        #---------------------------
+        #     Construct the coefficients of constriants
+        #----------------------------
+        
+        # source rate is the coefficient list of rate pieces
+        SourseRate=[]
+        for i in range(L):
+            SourseRate.extend([[0]*(2*L-1)])
+        for i in range(0,L):
+            #piece_mount=per_c[i]-per_s[i]
+            for j in range(0,2*L-1):
+                #SourseRate[i][j]=[0]*(2*L-1)
+                if (j>=per_s.index(i))&(j<=per_c.index(i)+L-1):
+                    SourseRate[i][j]=1
+        #construct the linear programming equation
+        channel_mode="parallel"
+        if channel_mode=="parallel":
+            A_ConstriantMatrix=SourseRate+entropy_coefficient_list
+            b_ConstriantVector=source_rate_upbound_list+rate_sec_hop[0:M]
+            #change the parallel channel capacity constraints
+            subset_list=list(Powerset(set(range(0,L))))
+            for i in range(L+1,len(subset_list)):
+                bound_sum=0
+                for j in subset_list[i]:
+                    bound_sum=bound_sum+rate_sec_hop[j]
+                b_ConstriantVector.append(bound_sum)
+        elif channel_mode=="MAC":
+            b_ConstriantVector=source_rate_upbound_list+rate_sec_hop
+            A_ConstriantMatrix=SourseRate+entropy_coefficient_list
+        
+        feasible_flag = True
+        for i in range(len(A_ConstriantMatrix)):
+            temp = np.dot(np.array(A_ConstriantMatrix[i]), np.array(rate_piece))
+            if temp <= b_ConstriantVector[i] + temp * 10**(-5): # prevent the numerical error
+                continue
+            else:
+                feasible_flag = False
+                print 'constriant', i+1, 'is not satisfied!'
+        return feasible_flag, per_c# return the logical value, codingl lattice permutation, rate_piece
     
 
 if __name__=="__main__":
@@ -281,7 +303,7 @@ if __name__=="__main__":
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
     #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0]
     #PI_con = [10 ** 1.2, 10 ** 1.4]
-    PI_con=[10**3.0]
+    PI_con=[10**2.0]
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
