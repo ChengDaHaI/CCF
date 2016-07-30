@@ -187,31 +187,7 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
                 temp[1:3] = [1,1]
                 source_coef[i] = copy.copy(temp)
         comp_source_set = [[per_s[0]], [per_s[1]], [per_s[1], per_s[2]], [per_s[2]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             
-#             if rate_comp_fix_index != []:
-#                 temp = []
-#                 for k in range(len(rate_comp_fix_index)):
-#                     temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#                 entropy_coef_fix[i-1] = temp
-#             entropy_coef[i-1] = piece_coefficient
+
     elif per_c == [2,2,2]:
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
         rate_comp_fix_index = [1]
@@ -223,29 +199,7 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         source_coef[per_s[1]] = copy.copy([0,1,1])
         source_coef[per_s[2]] = copy.copy([0,1,0])
         comp_source_set = [[per_s[0]], [per_s[1]], [per_s[1], per_s[2]], [per_s[1]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             temp = []
-#             for k in range(len(rate_comp_fix_index)):
-#                 temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#             entropy_coef_fix[i-1] = copy.copy(temp)
-#             entropy_coef[i-1] = piece_coefficient
+
     elif per_c == [3,3,3]:
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         rate_comp_fix_index = [0]
@@ -257,29 +211,7 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         source_coef[per_s[1]] = copy.copy([1,1,0])
         source_coef[per_s[2]] = copy.copy([0,0,1])
         comp_source_set = [[per_s[0]], [per_s[0], per_s[1]], [per_s[1]], [per_s[2]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             temp = []
-#             for k in range(len(rate_comp_fix_index)):
-#                 temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#             entropy_coef_fix[i-1] = copy.copy(temp)
-#             entropy_coef[i-1] = piece_coefficient
+
     elif per_c == [4,4,4]:
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         rate_comp_fix_index = [0]
@@ -291,29 +223,7 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         source_coef[per_s[1]] = copy.copy([1,0,0])
         source_coef[per_s[2]] = copy.copy([0,0,1])
         comp_source_set = [[per_s[0]], [per_s[0], per_s[1]], [per_s[0]], [per_s[2]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             temp = []
-#             for k in range(len(rate_comp_fix_index)):
-#                 temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#             entropy_coef_fix[i-1] = copy.copy(temp)
-#             entropy_coef[i-1] = piece_coefficient
+
     elif per_c == [5,5,5]:
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
@@ -328,29 +238,7 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         source_coef[per_s[1]] = copy.copy([1,1,1,0])
         source_coef[per_s[2]] = copy.copy([0,0,1,1])
         comp_source_set = [[per_s[0]], [per_s[0],per_s[1]], [per_s[1]], [per_s[1],per_s[2]], [per_s[2]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             temp = []
-#             for k in range(len(rate_comp_fix_index)):
-#                 temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#             entropy_coef_fix[i-1] = copy.copy(temp)
-#             entropy_coef[i-1] = piece_coefficient
+
     elif per_c == [6,6,6]:
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
@@ -365,29 +253,7 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         source_coef[per_s[1]] = copy.copy([1,1,1,1])
         source_coef[per_s[2]] = copy.copy([0,0,1,0])
         comp_source_set = [[per_s[0]], [per_s[0],per_s[1]], [per_s[1]], [per_s[1],per_s[2]], [per_s[1]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             temp = []
-#             for k in range(len(rate_comp_fix_index)):
-#                 temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#             entropy_coef_fix[i-1] = copy.copy(temp)
-#             entropy_coef[i-1] = piece_coefficient
+
     elif per_c == [7,7,7]:
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
@@ -402,29 +268,7 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         source_coef[per_s[1]] = copy.copy([1,0,0,0])
         source_coef[per_s[2]] = copy.copy([0,0,1,1])
         comp_source_set = [[per_s[0]], [per_s[0],per_s[1]], [per_s[1]], [per_s[0],per_s[2]], [per_s[2]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             temp = []
-#             for k in range(len(rate_comp_fix_index)):
-#                 temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#             entropy_coef_fix[i-1] = copy.copy(temp)
-#             entropy_coef[i-1] = piece_coefficient
+
     elif per_c == [8,8,8]:
         rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[0]]/shaping_lattice_voronoi[per_s[1]], 2) )
         #rate_comp_fix.append( 0.5 * math.log(shaping_lattice_voronoi[per_s[1]]/shaping_lattice_voronoi[per_s[2]], 2) )
@@ -439,29 +283,6 @@ def GCCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c = []):
         source_coef[per_s[1]] = copy.copy([1,0,0,0])
         source_coef[per_s[2]] = copy.copy([0,0,1,0])
         comp_source_set = [[per_s[0]], [per_s[0],per_s[1]], [per_s[1]], [per_s[0],per_s[2]], [per_s[0]]]
-#         #for every subset, we first calculate the sub-matrix 
-#         #then calculate the coefficients
-#         for i in range(1,len(subset_list)):
-#             piece_coefficient=[]
-#             subset=set(subset_list[i])
-#             complement_set=set_L.difference(subset)
-#             row=[]#sub-matrix row index
-#             row.extend(list(complement_set))
-#             
-#             rank_value=0
-#             for j in range(len(comp_source_set)):
-#                 colum = comp_source_set[j] #sub-matrix colum index
-#                 sub_A = A[row,colum]
-#                 rank_value = rank(A[list(set_L), colum]) - rank(sub_A)
-#                 #record the coefficient of rate pieces
-#                 #that is also the i row of transform matrix between  
-#                 #conditional_entropy list and rate_piece list
-#                 piece_coefficient.append(rank_value)
-#             temp = []
-#             for k in range(len(rate_comp_fix_index)):
-#                 temp.append(piece_coefficient.pop(rate_comp_fix_index[0]))
-#             entropy_coef_fix[i-1] = copy.copy(temp)
-#             entropy_coef[i-1] = piece_coefficient
     
     #for every subset, we first calculate the sub-matrix 
     #then calculate the coefficients
@@ -521,7 +342,16 @@ def GCCF_linear_prog(obj_func, obj_func_fix, rate_comp_fix, rate_comp_fix_index,
     if len(Part_entropy.shape) == 2:
         Part_entropy = Part_entropy[0]
     # vector of inequality constranit
-    constr_b_un = (np.subtract(np.array(source_rate_bound), Part_SourceRate.tolist())).tolist() + (np.subtract(np.array(rate_sec_hop), Part_entropy.tolist())).tolist() + per_c_constr_b
+    # parallele channel forwarding rate constranits
+    Forwarding_Constr = rate_sec_hop[0:L]
+    subset_list=list(Powerset(set(range(0,L))))
+    for i in range(L+1,len(subset_list)):
+        bound_sum=0
+        for j in subset_list[i]:
+            bound_sum=bound_sum+Forwarding_Constr[j]
+        Forwarding_Constr.append(bound_sum)
+
+    constr_b_un = (np.subtract(np.array(source_rate_bound), Part_SourceRate.tolist())).tolist() + (np.subtract(np.array(Forwarding_Constr), Part_entropy.tolist())).tolist() + per_c_constr_b
     
     # coefficient matrix and vector of equality constranit
     # it is part of fixed source rate, result from per_c

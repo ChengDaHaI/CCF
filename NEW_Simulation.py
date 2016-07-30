@@ -9,6 +9,7 @@ from NEW_basic import *
 from NEW_CCF_Modle import Relay_Forward_Rate, Powerset
 from NewSecondHopChannel import ComputeSecRate
 from ComputeRate import CoF_compute_search_pow_flex_beta
+from NEW_general_optimize_model import GCCF_new_sumrate_func
 from CoF_LLL import Find_A_and_Rate
 from CoF_second_hop import second_hop_support_rates
 from math import log10, fabs
@@ -40,47 +41,44 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     rate_sec_hop=ComputeSecRate(M,P_relay,H_b)
     t1=time.time()
     
-    sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con,H_a,True, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
+    # sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con,H_a,True, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
     
-    if True:
+    if False:
         # check the feasibility of beta_pow_opt
         try:
             nested_order_flag, per_c= Opt_feasible_check(beta_pow_opt, sum_rate_opt, P_con,  H_a, rate_sec_hop)
         except:
             print 'Error in Opt_feasible_check function !'
             raise
-        
-        # print the channel with mixed nested order
-        if nested_order_flag == False:
-            print 'H_a:\n', H_a
-            print 'H_b:\n', H_b
-            
-        if False:# comment the part of code, due to 3*3 GCCF simulation
-            if nested_order_flag:
-                # put the optimal solution beta_pow_opt into our NEW CCF system
-                try:
-                    #true_beta = vector(RR, [1,] + list(beta_pow_opt))
-                    #true_beta = vector(RR, list(beta_pow_opt))
-                    true_beta = beta_pow_opt
-                    LP_res = CCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, per_c)
-                except:
-                    print 'Error In Check The Optimal Solution to NEW CCF system!'
-                    raise
-                # print 'When put beta_pow_opt & per_c into OUR NEW CCF system, the sum rate is:', -LP_res
+
+        # put the optimal solution beta_pow_opt into our NEW CCF system
+        try:
+            #true_beta = vector(RR, [1,] + list(beta_pow_opt))
+            #true_beta = vector(RR, list(beta_pow_opt))
+            true_beta = beta_pow_opt
+            if nested_order_flag == True:
+                LP_res = CCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, per_c)
+            elif nested_order_flag == False:
+                LP_res = GCCF_new_sumrate_func(true_beta, [P_con]*L, H_a, rate_sec_hop, per_c)
+                # print the channel with mixed nested order
+                # print 'H_a:\n', H_a
+                # print 'H_b:\n', H_b
+                print 'check optimal sum rate:', -LP_res, 'CCF sum rate:', sum_rate_opt
             else:
-                # if the optimal solution is infeasible in NEW CCF system, we set the sum rate to zero.
                 return 0, 0 ,0, 0, 0, 0, 0 #New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), invalid chanel realization
-        
+        except:
+            print 'Error In Check The Optimal Solution to NEW CCF system!'
+            raise
     t2=time.time()
     print 'CCF time cost: ', (t2 - t1)
-
-    Max_New_sum_rate = 0
     
-    out_per_c_search = False
-    #per_c = []
-#   [[0, 0, 0],[1, 1, 1],[2, 2, 2],[3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7],[8, 8, 8]]
+    out_per_c_search = True
     if out_per_c_search:
+        Max_New_sum_rate = 0
+        per_c_order_list = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7], [8, 8, 8]]
+        #per_c_order_list = list(itertools.permutations(list(range(0, L)), L)) + [[0, 0, 0],[1, 1, 1],[2, 2, 2],[3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7],[8, 8, 8]]
         for code_order in itertools.permutations(list(range(0, L)), L):
+        #for code_order in per_c_order_list:
             per_c = list(code_order) 
             # print 'coding lattice permutation: ', per_c
             tic = time.time()
@@ -90,6 +88,16 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
             if Max_New_sum_rate < New_sum_rate_opt:
                 Max_New_sum_rate = copy.copy(New_sum_rate_opt) 
         New_sum_rate_opt = copy.copy(Max_New_sum_rate)
+        Max_New_sum_rate = 0
+        # search sum rate in per_c_order_list
+        for per_c in per_c_order_list:
+            (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
+            if Max_New_sum_rate < GCCF_sum_rate_opt:
+                Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
+        GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
+        #To output two kinds of sum rate, so we change the varible
+        sum_rate_opt = copy.copy(New_sum_rate_opt)
+        New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
     else:
         # per_c is assigned with the output of Opt_feasible_check()
         print 'per_c = :\n', per_c
@@ -109,7 +117,9 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     #         print 'the ratio is: ', New_sum_rate_opt/sum_rate_opt
     #         print 'First channel matirx:\n', H_a
     #         print 'Second channel matirx:\n', H_b
-    
+    # if sum_rate_opt > 1.01 * New_sum_rate_opt:
+    #     return 0, 0, 0, 0, 0, 0, 0
+    # else:
     return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), 1, better_flag#1 is the flag of valid chanel realization.
     
     
@@ -148,11 +158,11 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
             raise
         
         support_rates = support_result[0]
-        source_rate   = support_result[1]
+        #source_rate   = support_result[1]
         shaping_lattice= support_result[2]
         coding_lattice = support_result[3]
-        mod_order = support_result[4]
-        quan_order = support_result[5]
+        #mod_order = support_result[4]
+        #quan_order = support_result[5]
         
         if np.abs(support_rates - sum_rate_opt) > 1* 10**(-2): # prevent the numerical error:
             print 'Something Wrong When recovery the Original CCF sum rate!'
@@ -160,11 +170,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
     else:
         print 'rank problem in check function'
         #raise
-    
-    # processing coding lattice
-    for i in range(L):
-        if coding_lattice[i] > shaping_lattice[i]:
-           shaping_lattice[i] = coding_lattice[i] * 1.001
+
     # coding latice nested order
     per_c=[]
     H_a_col_min = copy.copy(coding_lattice)
@@ -198,16 +204,22 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
             rate_piece[i] = max(0.5*np.log2(shaping_lattice[per_s[i]]/coding_lattice[per_c[i-(L-1)]]), 0)
         elif i >= L:
             rate_piece[i] = max(0.5*np.log2(coding_lattice[per_c[i-L]]/coding_lattice[per_c[i-(L-1)]]), 0)
-    
-    
-    nested_order_flag = True # separable nested order
+
+    # processing coding lattice
+    nested_order_flag = True  # separable nested order
+    # for i in range(L):
+    #     if coding_lattice[i] > shaping_lattice[i]: # wrong nested order!
+    #         nested_order_flag = None
+    #         per_c = None
+    #         return nested_order_flag, per_c
+
     if max(coding_lattice) > min(shaping_lattice):
         print 'The lattice nested order in Original CCF is mixed! Not the Same as New CCF'
         nested_order_flag = False # mixed nested order
         if coding_lattice[per_s[0]] > shaping_lattice[per_s[1]]:
             if coding_lattice[per_s[1]] > shaping_lattice[per_s[2]]:
                 per_c = [0,0,0]
-            elif coding_lattice[per_s[1]] > coding_lattice[per_s[2]]:
+            elif coding_lattice[per_s[1]] >= coding_lattice[per_s[2]]:
                 per_c = [1,1,1]
             elif coding_lattice[per_s[1]] < coding_lattice[per_s[2]]:
                 per_c = [2,2,2]
@@ -216,14 +228,14 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
                 raise
         elif coding_lattice[per_s[0]] > shaping_lattice[per_s[2]]:
             if coding_lattice[per_s[1]] > shaping_lattice[per_s[2]]:
-                if coding_lattice[per_s[0]] < coding_lattice[per_s[1]]:
+                if coding_lattice[per_s[0]] > coding_lattice[per_s[1]]:
                     per_c = [3,3,3]
-                elif coding_lattice[per_s[0]] > coding_lattice[per_s[1]]:
+                elif coding_lattice[per_s[0]] < coding_lattice[per_s[1]]:
                     per_c = [4,4,4]
                 else:
                     print 'Not such nested order!'
                     raise
-            elif coding_lattice[per_s[1]] > coding_lattice[per_s[2]]:
+            elif coding_lattice[per_s[1]] >= coding_lattice[per_s[2]]:
                 per_c = [5,5,5]
             elif coding_lattice[per_s[1]] < coding_lattice[per_s[2]]:
                 per_c = [6,6,6]
@@ -238,6 +250,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
         else:
             print 'Not such nested order!'
             raise
+
     return nested_order_flag, per_c
     
     
@@ -289,7 +302,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
-    num_batch = 1
+    num_batch = 240
     sum_rate=[]
     New_sum_rate=[]
     New_sum_time=[]
@@ -302,8 +315,8 @@ if __name__=="__main__":
     #PI_con = [10 ** 3.0]
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
     #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0]
-    #PI_con = [10 ** 1.2, 10 ** 1.4]
-    PI_con=[10**2.0]
+    PI_con = PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
+    #PI_con=[10**2.0]
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
@@ -323,9 +336,9 @@ if __name__=="__main__":
         ##
         
         valid_number = [valid_channel[i] for i in range(0,num_batch)]# the times of valid channel realization
-        print 'valid_channel: ', valid_channel
-        
-        print 'New_Rate_list: ', New_Rate_list
+        # print 'valid_channel: ', valid_channel
+        #
+        # print 'New_Rate_list: ', New_Rate_list
         # delete those 'Null' value 
         A_ind_list = []
         while True:
@@ -347,7 +360,7 @@ if __name__=="__main__":
                 # fix_per_c_Rate_list.pop(i)
                 better_flag_list.pop(i)
         
-        print 'valid_number: ', valid_number
+        print 'valid_number:\n ', valid_number
         valid_sum = sum(valid_number)
         valid_sum_list.append(valid_sum)
         if valid_sum ==0:
@@ -358,7 +371,7 @@ if __name__=="__main__":
             sum_time.append(0)
             better_channel_prob.append(0)
         else:
-            print 'New_Rate_list: ', New_Rate_list
+            print 'New_Rate_list:\n', New_Rate_list
             #New_ratelist=[New_Rate_list[i] for i in range(0,num_batch)]
             New_sum_rate.append(sum(New_Rate_list)/valid_sum)
             
@@ -366,7 +379,7 @@ if __name__=="__main__":
             # #New_fix_per_c_ratelist = [fix_per_c_Rate_list[i] for i in range(0,num_batch)]
             # New_fix_sum_rate.append(sum(fix_per_c_Rate_list)/valid_sum)
             
-            print 'Rate_list:, ', Rate_list
+            print 'Rate_list:\n', Rate_list
             #ratelist=[Rate_list[i] for i in range(0,num_batch)]
             sum_rate.append(sum(Rate_list)/valid_sum)
             
@@ -387,8 +400,8 @@ if __name__=="__main__":
     print 'New CCF Model Time Cost:' , New_sum_time
     print 'CCF Model Time Cost:' , sum_time
     
-    print 'valid channel number in different SNR: ', valid_sum_list
-    print 'better perfermance probability: ', better_channel_prob
+    print 'valid channel number in different SNR:\n ', valid_sum_list
+    print 'better perfermance probability:\n ', better_channel_prob
     PI_dB=[10*log10(P_con) for P_con in PI_con]
     Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate))
     if False:
