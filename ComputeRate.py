@@ -95,8 +95,11 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
         -CoF_compute_fixed_pow_flex(power, P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, beta)
     '''
     if is_fixed_power == False:
-        cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex(x[0:L], P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[L:2*L-1])))
-        Pranges = ((P_con/brute_number, P_con), )*L + ((float(beta_max)/brute_number, beta_max), )*(L-1)
+        #cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex(x[0:L], P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,]+list(x[L:2*L-1])))
+        #Pranges = ((0.01, P_con), )*L + ((0.01, beta_max), )*(L-1)
+        # the following function is fixing beta and optimize power
+        cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex(x[0:L], P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1, ] * L))
+        Pranges = ((0.01, P_con),) * L
     else:
         cof_pow_beta = lambda x: -CoF_compute_fixed_pow_flex((P_con,)*L, P_con, False, H_a, is_dual_hop, rate_sec_hop, mod_scheme, quan_scheme, vector(RR, [1,] + list(x[0:L-1])))
         Pranges = ((0.01, beta_max), )*(L-1)
@@ -132,7 +135,7 @@ def CoF_compute_search_pow_flex_beta(P_con, H_a, is_fixed_power, is_dual_hop, P_
 #             #seed_int = np.random.randint(1,100)
 #             print 'CCF seed: ', seed_int
             #return 0, [0]*(L)
-            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges, maxiter = 50, seed = seed_int, disp = False)
+            res_brute=optimize.differential_evolution(cof_pow_beta,Pranges, maxiter = 20, seed = seed_int, disp = False)
             
             t2=time.time()
             t=t2-t1

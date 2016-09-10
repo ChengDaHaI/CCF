@@ -84,7 +84,6 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                         sum_rate_max = sum_rate
                 elif quan_scheme == 'asym_quan':
                     has_feasible_quan = False
-                    
                     if False: # comment Tan's method
                         # Tan's method to find source coding lattices and quan_order seems to be wrong!
                         for quan_order in itertools.permutations(list(range(0, M)), L):
@@ -103,17 +102,17 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                                 relay_map_fine_lattices = [0]*M
                                 for i_m in range(0, M):
                                     relay_map_fine_lattices[i_m] = trans_compute_fine_lattices[quan_order_list.index(i_m)]
-                                
+
                                 # determine the quantization lattice at the m-th relay
                                 relay_quan_fine_lattices = [0]*M
                                 for i_m in range(0, M):
                                     relay_quan_fine_lattices[i_m] = max(relay_map_fine_lattices[i_m], relay_coarse_lattices[i_m]/(2**(2*rate_sec_hop[i_m])))
-                                
+
                                 # map the relay_quan_fine_lattices back to the transmitters
                                 trans_fine_lattices = [0]*L
                                 for i_l in range(0, L):
                                     trans_fine_lattices[i_l] = relay_quan_fine_lattices[quan_order_list[i_l]]
-                                
+
                                 # calculate transmission sum rates
                                 r = [0]*L
                                 for i_l in range(0, L):
@@ -145,20 +144,24 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                             relay_map_fine_lattices = [0]*M
                             for i_m in range(0, M):
                                 relay_map_fine_lattices[i_m] = trans_compute_fine_lattices[quan_order_list.index(i_m)]
-                            
+
                             # determine the quantization lattice at the m-th relay
                             relay_quan_fine_lattices = [0]*M
                             for i_m in range(0, M):
                                 relay_quan_fine_lattices[i_m] = max(relay_map_fine_lattices[i_m], relay_coarse_lattices[i_m]/(2**(2*rate_sec_hop[i_m])))
-                            
+
                             # map the relay_quan_fine_lattices back to the transmitters
                             trans_fine_lattices = [0]*L
                             for i_l in range(0, L):
                                 trans_fine_lattices[i_l] = relay_quan_fine_lattices[quan_order_list[i_l]]
-                            
+
                             # check the feasibility of quan_order with given trans_fine_lattices
                             is_quan_decodable = check_feasible_permutation(A, [-trans_fine_lattices[i] for i in range(0, L)], quan_order)
-                            
+                            # if the fine lattices is more coarse than the coarse lattice, we say the quan_order is not decodable!!!
+                            # for i_l in range(0,L):
+                            #    if trans_fine_lattices[i_l] > trans_coarse_lattices[i_l]:
+                            #        is_quan_decodable = False
+
                             if is_quan_decodable:
                                 has_feasible_quan = True
                                 # calculate transmission sum rates
@@ -166,18 +169,19 @@ def second_hop_support_rates(relay_fine_lattices, trans_coarse_lattices, A, rate
                                 for i_l in range(0, L):
                                     r[i_l] = max(0, 0.5*log(trans_coarse_lattices[i_l]/trans_fine_lattices[i_l], 2))
                                 sum_rate = sum(r)
-                                if sum_rate_max < sum_rate:
+                                if sum_rate < 1.01 * sum(rate_sec_hop[0:M]):
                                     sum_rate_max = sum_rate
                                     r_opt = copy.copy(r)
                                     trans_shaping_opt = copy.copy(trans_coarse_lattices)
                                     trans_coding_opt  = copy.copy(trans_fine_lattices)
                                     mod_order_opt = copy.copy(mod_order_list)
                                     quan_order_opt = copy.copy(quan_order_list)
-                                
-                    if has_feasible_quan == False:
-                        raise Exception('If Q is full rank, then there must be at leat one feasible quantizatioin way. But no one found.')
+                        if has_feasible_quan == False:
+                            raise Exception('If Q is full rank, then there must be at leat one feasible quantizatioin way. But no one found.')
                 else:
-                    raise Exception('quan_scheme should take value as "asym_quan" or "sym_quan"')
+                     raise Exception('quan_scheme should take value as "asym_quan" or "sym_quan"')
+        # if has_feasible_quan == False:
+        #     raise Exception('If Q is full rank, then there must be at leat one feasible quantizatioin way. But no one found.')
                 
         # if no successful scheme found,
         if has_feasible_mod == False: 

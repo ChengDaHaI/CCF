@@ -1,5 +1,6 @@
 #coding=utf-8 
 from sage.all import *
+from NEW_basic import *
 import math
 import numpy
 
@@ -44,8 +45,8 @@ def Compute_AF_rate(Ps,Pr,Ha,Hb,L=2,M=2):
 
 #终端为单天线
 #故Hb为一横向量
-#此处L表示中继数量，M表示终端天线数量
-def Compute_AF_rate(Ps,Pr,Ha,Hb,L=2,M=2):
+#此处L表示中继数量，M表示终端天线数量 ???
+def Compute_AF_rate(Ps,Pr,Ha,Hb,L,M):
 
     alpha=[0]*L
     for i in range(L):

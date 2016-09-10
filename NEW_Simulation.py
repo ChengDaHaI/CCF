@@ -41,8 +41,9 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     rate_sec_hop=ComputeSecRate(M,P_relay,H_b)
     t1=time.time()
     
-    # sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con,H_a,True, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
-    
+    sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con,H_a,False, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
+    if sum_rate_opt > 1.01 * sum(rate_sec_hop[0:M]):
+        sum_rate_opt = sum(rate_sec_hop[0:M])
     if False:
         # check the feasibility of beta_pow_opt
         try:
@@ -88,16 +89,17 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
             if Max_New_sum_rate < New_sum_rate_opt:
                 Max_New_sum_rate = copy.copy(New_sum_rate_opt) 
         New_sum_rate_opt = copy.copy(Max_New_sum_rate)
-        Max_New_sum_rate = 0
-        # search sum rate in per_c_order_list
-        for per_c in per_c_order_list:
-            (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
-            if Max_New_sum_rate < GCCF_sum_rate_opt:
-                Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
-        GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
-        #To output two kinds of sum rate, so we change the varible
-        sum_rate_opt = copy.copy(New_sum_rate_opt)
-        New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
+
+        #search sum rate in per_c_order_list
+        # Max_New_sum_rate = 0
+        # for per_c in per_c_order_list:
+        #     (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
+        #     if Max_New_sum_rate < GCCF_sum_rate_opt:
+        #         Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
+        # GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
+        # #To output two kinds of sum rate, so we change the varible
+        # sum_rate_opt = copy.copy(New_sum_rate_opt)
+        # New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
     else:
         # per_c is assigned with the output of Opt_feasible_check()
         print 'per_c = :\n', per_c
@@ -302,7 +304,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
-    num_batch = 240
+    num_batch = 100
     sum_rate=[]
     New_sum_rate=[]
     New_sum_time=[]
@@ -314,9 +316,9 @@ if __name__=="__main__":
     #result_list=[]
     #PI_con = [10 ** 3.0]
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
-    #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0]
-    PI_con = PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
-    #PI_con=[10**2.0]
+    #PI_con = [10**2.3, 10**2.6]
+    #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
+    PI_con=[10**2.0, 10**2.3, 10**2.6, 10**2.9, 10**3.2, 10**3.5]
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
@@ -404,8 +406,8 @@ if __name__=="__main__":
     print 'better perfermance probability:\n ', better_channel_prob
     PI_dB=[10*log10(P_con) for P_con in PI_con]
     Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate))
-    if False:
-        np.savetxt('/home/haizi/Pictures/Results/TxtFile/' + time.ctime() + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
+    if True:
+        np.savetxt('/home/haizi/Pictures/Results/TxtFile/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + time.ctime() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
     
         plot_rate=list_plot(zip(PI_dB,sum_rate),plotjoined=True, marker='d', \
                                           rgbcolor=Color('blue'), linestyle='-.', \
@@ -428,6 +430,6 @@ if __name__=="__main__":
         #plot_compare.title('Comparision of Two CCF')
         plot_compare.set_legend_options(loc='upper left')
 
-        plot_compare.save('/home/haizi/Pictures/Results/'  + time.ctime() + 'L=' + L.__str__() +'iter = ' + num_batch.__str__() + '.eps')
+        plot_compare.save('/home/haizi/Pictures/Results/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + time.ctime() + '.eps')
         plot_compare.show()
     # raw_input()
