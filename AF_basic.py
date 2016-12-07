@@ -58,9 +58,10 @@ def Compute_AF_rate(Ps,Pr,Ha,Hb,L,M):
     #source power diagonal matrix
     Q=matrix.diagonal([Ps for i in range(L)])
     #the equivalent noise matrix
-    N=(Hb*A)*(Hb*A).transpose()
+    # N=(Hb*A)*(Hb*A).transpose()
     I=matrix.diagonal([1]*M)
-    N=N+I
+    # N=N+I
+    N = Hb * (A*A.transpose() + I) * Hb.transpose()
     #calculate MIMO channel sum rate
     sum_rate=max(0,0.5*log((I+H*Q*H.transpose()*N.inverse()).determinant(),2))
     return sum_rate

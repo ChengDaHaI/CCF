@@ -26,9 +26,16 @@ def Compute_DF_rate(Ha, Hb, Ps, Pr):
     for i in range(0,M):
         DestinationRate[i] = 0.5 * log(1 + Hb.column(i).norm()**2*Pr, 2)
     
-    # the DF sum rate is the minimal of { first hop sum rate(SISO MAC channel), maximal of second hop rate }
+    # the DF sum rate is the minimal of { first hop sum rate(MISO MAC channel), maximal of second hop rate }
     # this is the original DF, the poorest performance.
-    DF_sumrate = min(RelayDecodeRate + [max(DestinationRate)])
+    # DF_sumrate = min(RelayDecodeRate + [max(DestinationRate)])
+    DF_rate_perlink = [0]*M
+    for i in range(M):
+        DF_rate_perlink[i] = min(DestinationRate[i],RelayDecodeRate[i])
+
+    # DF scheme only need one relay decoding successfully or need all relay decoding successfully.
+    DF_sumrate = max(DF_rate_perlink) # one relay
+    # DF_sumrate = min(DF_rate_perlink) # all relay
     return DF_sumrate
 
 @parallel(ncpus=Cores)

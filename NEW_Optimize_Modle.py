@@ -172,7 +172,7 @@ def CCF_new_sumrate_func(betaScale, P_source, H_a, rate_sec_hop, per_c):
     #------------------------------------------
 def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
 
-    fix_pow = False
+    fix_pow = True
     #GCCF = True
     if fix_pow:  # fixed source power
         
@@ -191,8 +191,8 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
         if per_c[0] == per_c[1]:# GCCF
             CCF_beta_func = lambda x: GCCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), x[L-1:2*L - 1], H_a, rate_sec_hop, per_c)
         else:
-            #CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), x[L-1:2*L - 1], H_a, rate_sec_hop, per_c)
-            CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] * L), x[0:  L], H_a, rate_sec_hop, per_c)
+            CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] + list(x[0:L - 1])), x[L-1:2*L - 1], H_a, rate_sec_hop, per_c)
+            #CCF_beta_func = lambda x: CCF_new_sumrate_func(vector(RR, [1, ] * L), x[0:  L], H_a, rate_sec_hop, per_c)
         #Pranges = ((1e-2, betaScale_max),) * (L-1) + ((1e-2, P_con),) * L  # L beta and L source power
         Pranges =  ((1e-2, P_con),) * L  # L beta and L source power
 
@@ -201,7 +201,7 @@ def RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c=[]):
         t1 = time.time()
         try:
             seed_int = randint(1, 1000)
-            ResSearch = optimize.differential_evolution(CCF_beta_func, Pranges, maxiter = 20, seed=seed_int,
+            ResSearch = optimize.differential_evolution(CCF_beta_func, Pranges, maxiter = 50, seed=seed_int,
                                                         disp=False)
         except:
             print 'error in differential evolution algorithm'

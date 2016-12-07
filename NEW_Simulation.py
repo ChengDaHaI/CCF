@@ -22,28 +22,36 @@ from docutils.utils.punctuation_chars import delimiters
 
 @parallel(ncpus=Cores)
 def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
+
     set_random_seed()
     
     if set_HaHb == True:
         H_a = set_H_a
         H_b = set_H_b
-        
     else:   
-        H_a = matrix.random(RR, M, L, distribution = RealDistribution('gaussian', 1))
+        # H_a = matrix.random(RR, M, L, distribution = RealDistribution('gaussian', 1))
+        #
+        # H_b = matrix.random(RR, 1, M, distribution = RealDistribution('gaussian', 1))
+        H_a = Matrix(RR, L, M, lambda i, j: normalvariate(0, 1))
         # second hop channel is parallel
-        H_b = matrix.random(RR, 1, M, distribution = RealDistribution('gaussian', 1))
-        
-        print 'H_a:', H_a
-        print 'H_b:', H_b
-        #print 'Transmitter Power:', P_con
-        
+        H_b = Matrix(RR, 1, M, lambda i, j: normalvariate(0, 1))
+        # print 'H_a:', H_a
+        # print 'H_b:', H_b
+
     #second hop channel capacity, 2**L-1 inequalities
     rate_sec_hop=ComputeSecRate(M,P_relay,H_b)
+
+    # compute the cut-set bound
+    R_cs = min(0.5 * np.log2((P_con * H_a * H_a.transpose() + diagonal_matrix(vector(RR, [1] * L))).determinant()),
+               sum(rate_sec_hop[0:M]))
     t1=time.time()
-    
-    sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con,H_a,False, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
-    if sum_rate_opt > 1.01 * sum(rate_sec_hop[0:M]):
-        sum_rate_opt = sum(rate_sec_hop[0:M])
+
+    # if we want to compare GCCF and GCCF-S, we can comment the following one line\
+
+    # sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con, H_a, False, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
+    # if sum_rate_opt > 1.01 * sum(rate_sec_hop[0:M]):
+    #     sum_rate_opt = sum(rate_sec_hop[0:M])
+
     if False:
         # check the feasibility of beta_pow_opt
         try:
@@ -70,6 +78,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         except:
             print 'Error In Check The Optimal Solution to NEW CCF system!'
             raise
+
     t2=time.time()
     print 'CCF time cost: ', (t2 - t1)
     
@@ -91,15 +100,15 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         New_sum_rate_opt = copy.copy(Max_New_sum_rate)
 
         #search sum rate in per_c_order_list
-        # Max_New_sum_rate = 0
-        # for per_c in per_c_order_list:
-        #     (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
-        #     if Max_New_sum_rate < GCCF_sum_rate_opt:
-        #         Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
-        # GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
-        # #To output two kinds of sum rate, so we change the varible
-        # sum_rate_opt = copy.copy(New_sum_rate_opt)
-        # New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
+        Max_New_sum_rate = 0
+        for per_c in per_c_order_list:
+            (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
+            if Max_New_sum_rate < GCCF_sum_rate_opt:
+                Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
+        GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
+        #To output two kinds of sum rate, so we change the varible
+        sum_rate_opt = copy.copy(New_sum_rate_opt)
+        New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
     else:
         # per_c is assigned with the output of Opt_feasible_check()
         print 'per_c = :\n', per_c
@@ -122,7 +131,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     # if sum_rate_opt > 1.01 * New_sum_rate_opt:
     #     return 0, 0, 0, 0, 0, 0, 0
     # else:
-    return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), 1, better_flag#1 is the flag of valid chanel realization.
+    return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), 1, better_flag, R_cs#1 is the flag of valid chanel realization.
     
     
 # chech the feasibility of optimal solution of originl CCF in the NEW CCF system
@@ -304,9 +313,10 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
-    num_batch = 100
+    num_batch = 500
     sum_rate=[]
     New_sum_rate=[]
+    sum_rate_cut_set = []
     New_sum_time=[]
     sum_time=[]
     valid_sum_list = []
@@ -314,11 +324,12 @@ if __name__=="__main__":
     
     #ratelist
     #result_list=[]
-    #PI_con = [10 ** 3.0]
+    #PI_con = [10 ** 0, 10 ** 0.4, 10 ** 0.8,  10 ** 1.2,  10 ** 1.6,  10 ** 2.0]
+    PI_con = [10 ** 0, 10 ** 0.2, 10 ** 0.4, 10 ** 0.6, 10 ** 0.8, 10 ** 1.0, 10 ** 1.2, 10 ** 1.4, 10 ** 1.6, 10 ** 1.8, 10 ** 2.0]
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
-    #PI_con = [10**2.3, 10**2.6]
+    #PI_con = [10**2.0, 10**2.3, 10**2.6]
     #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
-    PI_con=[10**2.0, 10**2.3, 10**2.6, 10**2.9, 10**3.2, 10**3.5]
+    #PI_con=[10**2.0, 10**2.3, 10**2.6, 10**2.9, 10**3.2, 10**3.5]
     print 'Simulation Starts!\n'
     t1=time.time()
     for Pi in PI_con:
@@ -335,6 +346,7 @@ if __name__=="__main__":
         valid_channel = [result_list[i][1][4] for i in range(0,num_batch)]
         # fix_per_c_Rate_list = [result_list[i][1][5] for i in range(0,num_batch)]
         better_flag_list = [result_list[i][1][5] for i in range(0,num_batch)]
+        rate_cut_set_list = [result_list[i][1][6] for i in range(0,num_batch)]
         ##
         
         valid_number = [valid_channel[i] for i in range(0,num_batch)]# the times of valid channel realization
@@ -357,6 +369,7 @@ if __name__=="__main__":
             for i in A_ind_list:
                 New_Rate_list.pop(i)
                 Rate_list.pop(i)
+                rate_cut_set_list.pop(i)
                 New_time_list.pop(i)
                 time_list.pop(i)
                 # fix_per_c_Rate_list.pop(i)
@@ -369,6 +382,7 @@ if __name__=="__main__":
             New_sum_rate.append(0)
             # New_fix_sum_rate.append(0)
             sum_rate.append(0)
+            sum_rate_cut_set.append(0)
             New_sum_time.append(0)
             sum_time.append(0)
             better_channel_prob.append(0)
@@ -384,7 +398,7 @@ if __name__=="__main__":
             print 'Rate_list:\n', Rate_list
             #ratelist=[Rate_list[i] for i in range(0,num_batch)]
             sum_rate.append(sum(Rate_list)/valid_sum)
-            
+            sum_rate_cut_set.append(sum(rate_cut_set_list)/valid_sum)
 
             #New_timelist=[New_time_list[i] for i in range(0,num_batch)]
             New_sum_time.append(sum(New_time_list)/valid_sum)
@@ -405,7 +419,7 @@ if __name__=="__main__":
     print 'valid channel number in different SNR:\n ', valid_sum_list
     print 'better perfermance probability:\n ', better_channel_prob
     PI_dB=[10*log10(P_con) for P_con in PI_con]
-    Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate))
+    Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate,sum_rate_cut_set))
     if True:
         np.savetxt('/home/haizi/Pictures/Results/TxtFile/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + time.ctime() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
     
@@ -418,13 +432,16 @@ if __name__=="__main__":
                                           rgbcolor=Color('green'), linestyle='-.', \
                                           legend_label = 'New_CCF_Model',gridlines=True)
 
-        # plot_new_fix_rate=list_plot(zip(PI_dB,New_fix_sum_rate),plotjoined=True, marker='<', \
+        # plot_new_fix_rate=list_plot(zip(PI_dB,sum_rate_cut_set),plotjoined=True, marker='<', \
         #                                   rgbcolor=Color('black'), linestyle='-.', \
         #                                   legend_label = 'New_CCF_Model_fix_per_c',gridlines=True)
-    #     plot_new_rate.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
-    #     plot_new_rate.set_legend_options(loc='upper left')
+        plot_rate_cut_set = list_plot(zip(PI_dB, sum_rate_cut_set), plotjoined=True, marker='<', \
+                                      rgbcolor=Color('black'), linestyle='-.', \
+                                      legend_label='Rate_cut_set_bound', gridlines=True)
+        # plot_new_rate.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
+        # plot_new_rate.set_legend_options(loc='upper left')
 
-        plot_compare=plot_new_rate+plot_rate
+        plot_compare=plot_new_rate+plot_rate+plot_rate_cut_set
         #plot_compare=plot_new_rate+plot_rate
         plot_compare.axes_labels(['SNR(dB)', 'Sum rate(bps)'])
         #plot_compare.title('Comparision of Two CCF')

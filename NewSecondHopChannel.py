@@ -38,11 +38,23 @@ def ComputeSecRate(M,P_relay,H_b):
     return constraint
     
 if  __name__=="__main__":
-    M=3
-    P_relay=25
-    #set_random_seed(1)
-    H_b= matrix.random(RR, M,M, distribution=RealDistribution('gaussian', 1))
-    constraint_list=ComputeSecRate(M, P_relay, H_b)
-    print constraint_list
+    M=2
+    P_con = 10
+    P_relay=0.25 * P_con
+    rate = 0
+    rate2 = 0
+    R_cs = 0
+    for i in range(2000):
+        set_random_seed()
+        #H_a = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
+        #H_b= matrix.random(RR, 1, M, distribution=RealDistribution('gaussian', 1))
+        H_a = Matrix(RR, L,M, lambda i,j: normalvariate(0, 1))
+        H_b = Matrix(RR, 1,M, lambda i,j: normalvariate(0, 1))
+        constraint_list=ComputeSecRate(M, P_relay, H_b)
+        rate = rate + sum(constraint_list[0:M])
+        rate2 = rate2 + 0.5 * log((P_con * H_a * H_a.transpose() + diagonal_matrix(vector(RR, [1] * L))).determinant(),2)
+        R_cs = R_cs + min(0.5 * log((P_con * H_a * H_a.transpose() + diagonal_matrix(vector(RR, [1] * L))).determinant(),2),
+                   sum(constraint_list[0:M]))
+    print R_cs/2000, rate/2000, rate2/2000
 
     
