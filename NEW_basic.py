@@ -10,7 +10,7 @@ p=17
 #P_con=1000
 k_P_ratio=0.25
 betaScale_max=4
-Cores = 20
+Cores = 30
 
 set_HaHb = False
 
