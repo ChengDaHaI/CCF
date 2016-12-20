@@ -48,9 +48,9 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
 
     # if we want to compare GCCF and GCCF-S, we can comment the following one line\
 
-    # sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con, H_a, False, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
-    # if sum_rate_opt > 1.01 * sum(rate_sec_hop[0:M]):
-    #     sum_rate_opt = sum(rate_sec_hop[0:M])
+    sum_rate_opt, beta_pow_opt = CoF_compute_search_pow_flex_beta(P_con, H_a, False, True, P_Search_Alg,rate_sec_hop[0:M],'asym_mod','asym_quan')
+    if sum_rate_opt > 1.01 * sum(rate_sec_hop[0:M]):
+        sum_rate_opt = sum(rate_sec_hop[0:M])
 
     if False:
         # check the feasibility of beta_pow_opt
@@ -100,15 +100,16 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         New_sum_rate_opt = copy.copy(Max_New_sum_rate)
 
         #search sum rate in per_c_order_list
-        Max_New_sum_rate = 0
-        for per_c in per_c_order_list:
-            (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
-            if Max_New_sum_rate < GCCF_sum_rate_opt:
-                Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
-        GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
-        #To output two kinds of sum rate, so we change the varible
-        sum_rate_opt = copy.copy(New_sum_rate_opt)
-        New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
+        if False:
+            Max_New_sum_rate = 0
+            for per_c in per_c_order_list:
+                (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
+                if Max_New_sum_rate < GCCF_sum_rate_opt:
+                    Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
+            GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
+            #To output two kinds of sum rate, so we change the varible
+            sum_rate_opt = copy.copy(New_sum_rate_opt)
+            New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
     else:
         # per_c is assigned with the output of Opt_feasible_check()
         print 'per_c = :\n', per_c
@@ -325,9 +326,9 @@ if __name__=="__main__":
     #ratelist
     #result_list=[]
     #PI_con = [10 ** 0, 10 ** 0.4, 10 ** 0.8,  10 ** 1.2,  10 ** 1.6,  10 ** 2.0]
-    PI_con = [10 ** 0, 10 ** 0.2, 10 ** 0.4, 10 ** 0.6, 10 ** 0.8, 10 ** 1.0, 10 ** 1.2, 10 ** 1.4, 10 ** 1.6, 10 ** 1.8, 10 ** 2.0]
+    #PI_con = [10 ** 0, 10 ** 0.2, 10 ** 0.4, 10 ** 0.6, 10 ** 0.8, 10 ** 1.0, 10 ** 1.2, 10 ** 1.4, 10 ** 1.6, 10 ** 1.8, 10 ** 2.0]
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
-    #PI_con = [10**2.0, 10**2.3, 10**2.6]
+    PI_con = [10**2.0]
     #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
     #PI_con=[10**2.0, 10**2.3, 10**2.6, 10**2.9, 10**3.2, 10**3.5]
     print 'Simulation Starts!\n'

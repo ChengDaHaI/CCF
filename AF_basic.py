@@ -16,8 +16,9 @@ if is_set_H == True:
     #Hb = matrix(RR, M, L, [[ 0.806026835557602,-0.267139360752616], [0.455755216914796, 0.590419325969173]])
     Hb = matrix(RR, 1, 2, [0.806026835557602,-0.267139360752616])
 else:
-    Ha = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
-    Hb = matrix.random(RR, M, L, distribution=RealDistribution('gaussian', 1))
+    Ha = Matrix(RR, L, M, lambda i, j: normalvariate(0, 1))
+    # second hop channel is parallel
+    Hb = Matrix(RR, 1, M, lambda i, j: normalvariate(0, 1))
 
 #计算AmplifyForward系统速率
 #即等效MIMO信道速率
@@ -58,10 +59,10 @@ def Compute_AF_rate(Ps,Pr,Ha,Hb,L,M):
     #source power diagonal matrix
     Q=matrix.diagonal([Ps for i in range(L)])
     #the equivalent noise matrix
-    # N=(Hb*A)*(Hb*A).transpose()
+    N=(Hb*A)*(Hb*A).transpose()
     I=matrix.diagonal([1]*M)
-    # N=N+I
-    N = Hb * (A*A.transpose() + I) * Hb.transpose()
+    N=N+I
+    #N = Hb * (A*A.transpose() + I) * Hb.transpose()
     #calculate MIMO channel sum rate
     sum_rate=max(0,0.5*log((I+H*Q*H.transpose()*N.inverse()).determinant(),2))
     return sum_rate
