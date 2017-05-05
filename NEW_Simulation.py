@@ -314,7 +314,11 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
+<<<<<<< HEAD
     num_batch = 200
+=======
+    num_batch = 50
+>>>>>>> 07bca57023849db441b2e1d7f746930ca8ef3aed
     sum_rate=[]
     New_sum_rate=[]
     sum_rate_cut_set = []
@@ -328,7 +332,7 @@ if __name__=="__main__":
     #PI_con = [10 ** 0, 10 ** 0.4, 10 ** 0.8,  10 ** 1.2,  10 ** 1.6,  10 ** 2.0]
     #PI_con = [10 ** 0, 10 ** 0.2, 10 ** 0.4, 10 ** 0.6, 10 ** 0.8, 10 ** 1.0, 10 ** 1.2, 10 ** 1.4, 10 ** 1.6, 10 ** 1.8, 10 ** 2.0]
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
-    PI_con = [10**2.0]
+    PI_con = [10**2.3, 10**2.6]
     #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
     #PI_con=[10**2.0, 10**2.3, 10**2.6, 10**2.9, 10**3.2, 10**3.5]
     print 'Simulation Starts!\n'
@@ -406,11 +410,14 @@ if __name__=="__main__":
             
             #timelist=[time_list[i] for i in range(0,num_batch)]
             sum_time.append(sum(time_list)/valid_sum)
-            
-            
             #better_flag_sum = [better_flag_list[i] for i in range(0,num_batch)]
             print 'better channel number:', better_flag_list
             better_channel_prob.append(float( sum( better_flag_list ) ) / valid_sum)
+            '''
+            Saving raw simulation results
+            '''
+            Result = np.column_stack((New_Rate_list, Rate_list))
+            np.savetxt('/home/landon/Pictures/Results/TxtFile/TempResults/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + 'dB = ' + (10*log10(Pi)).__str__() + time.ctime() + '_Result.txt', Result,fmt = '%1.5e')
             
     t2=time.time()
     print 'Total Time Cost: ' ,(t2-t1)
@@ -422,7 +429,7 @@ if __name__=="__main__":
     PI_dB=[10*log10(P_con) for P_con in PI_con]
     Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate,sum_rate_cut_set))
     if True:
-        np.savetxt('/home/haizi/Pictures/Results/TxtFile/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + time.ctime() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
+        np.savetxt('/home/landon/Pictures/Results/TxtFile/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + time.ctime() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
     
         plot_rate=list_plot(zip(PI_dB,sum_rate),plotjoined=True, marker='d', \
                                           rgbcolor=Color('blue'), linestyle='-.', \
