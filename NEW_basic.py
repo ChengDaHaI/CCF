@@ -1,6 +1,9 @@
 from sage.all import *
-L = 4
-M = 4
+
+N = 3 # number of antenna, used in SSA simulation
+K = 2 # number of user
+L = N * K
+M = N * K
 p=17
 #A=Matrix([[1,2,3],[1,2,2],[2,1,3]])#matrix A must be full-rank
 #beta_s=[2.5,2.0,1.8]

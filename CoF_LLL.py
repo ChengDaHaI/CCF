@@ -240,6 +240,10 @@ def Find_A_and_Rate(P_mat, P_vec, H, is_return_rate_list=False, beta=[]):
 #                     alpha_opt = alpha_opt_i_row_search
                     relay_fine_lattices = relay_fine_lattices_i_row_search
                     A_best = A
+
+                # if find a full rank A matrix, jump out from the endless loop!!!
+                # Added by Hai Cheng in 2017.5.5
+                break
             else:
                 pass
 #     A_best_F = matrix(GF(p), A_best)

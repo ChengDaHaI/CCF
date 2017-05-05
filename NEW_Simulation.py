@@ -32,7 +32,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         # H_a = matrix.random(RR, M, L, distribution = RealDistribution('gaussian', 1))
         #
         # H_b = matrix.random(RR, 1, M, distribution = RealDistribution('gaussian', 1))
-        H_a = Matrix(RR, L, M, lambda i, j: normalvariate(0, 1))
+        H_a = Matrix(RR, M, L, lambda i, j: normalvariate(0, 1))
         # second hop channel is parallel
         H_b = Matrix(RR, 1, M, lambda i, j: normalvariate(0, 1))
         # print 'H_a:', H_a
@@ -314,7 +314,7 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
     
-    num_batch = 500
+    num_batch = 200
     sum_rate=[]
     New_sum_rate=[]
     sum_rate_cut_set = []
