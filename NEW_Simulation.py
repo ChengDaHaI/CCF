@@ -313,12 +313,9 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
     
 
 if __name__=="__main__":
-    
-<<<<<<< HEAD
+
     num_batch = 200
-=======
-    num_batch = 50
->>>>>>> 07bca57023849db441b2e1d7f746930ca8ef3aed
+    # num_batch = 50
     sum_rate=[]
     New_sum_rate=[]
     sum_rate_cut_set = []

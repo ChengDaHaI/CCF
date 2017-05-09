@@ -20,14 +20,14 @@ import numpy as np
 # input: P_tran -- transmiter power list, H_a -- first hop channel,
 #        capacity_bh -- capcaity of backhual, N -- number of antenna in transmiter
 # output:sum rate of a C-RAN system
-def Rate_CCF_CRAN( P_tran, H_a, capacity_bh):
+def Rate_CCF_CRAN( P_tran,beta, H_a, capacity_bh):
     # transmitter power
     P_vec = vector(RR, P_tran)
     P_mat = matrix.diagonal([sqrt(x) for x in P_vec])
     # Use LLL to find a good A matrix
     # determine the fine lattice of m-th relay at the same time
     try:
-        (A_best_LLL, source_rate_upbound_list, relay_fine_lattices) = Find_A_and_Rate(P_mat, P_vec, H_a, True, vector(RR, [1]*L))
+        (A_best_LLL, source_rate_upbound_list, relay_fine_lattices) = Find_A_and_Rate(P_mat, P_vec, H_a, True,beta)
     except:
         print 'error in seeking A and rate'
         raise
@@ -44,11 +44,12 @@ def rate_opt(P_con,  C_BH,  alg = 'None'):
     set_random_seed()
     # generate channel matrix with M*N rows and L*N columns
     H = Matrix(RR, M, L,  lambda i, j: normalvariate(0, 1))
-    capacity_bh = C_BH * log(P_con)
+    # BH capcaity
+    capacity_bh = C_BH * log(P_con,2)
     sum_rate = 0
     if alg == 'DE':
-        opt_fun = lambda x: - Rate_CCF_CRAN(x, H, capacity_bh)
-        bounds = ((0.1, P_con), ) * L
+        opt_fun = lambda x: - Rate_CCF_CRAN(P_con, vector(RR, [1, ] + list(x[0:L - 1])), H, capacity_bh)
+        bounds = ((0.1, betaScale_max), ) * (L-1)
         opt_res = optimize.differential_evolution(opt_fun, bounds, maxiter = 20, disp = False)
         sum_rate = -opt_res.fun
         print 'CCF Differential Evolution:', opt_res.success
@@ -62,12 +63,12 @@ if __name__ == '__main__':
 
     C_BH = 5
     alg = 'DE'
-    num_batch = 500
+    num_batch = 200
     sum_rate_list = []
     New_sum_rate = []
-    # PI_con = [10 ** 1, 10 ** 1.25, 10 ** 1.5, 10 ** 1.75, 10 ** 2, 10 ** 2.25, 10 ** 2.5, 10 ** 2.75, 10 ** 3, 10 ** 3.25,
-    #        10 ** 3.5]
-    PI_con = [10 ** 2]
+    PI_con = [10 ** 1, 10 ** 1.25, 10 ** 1.5, 10 ** 1.75, 10 ** 2, 10 ** 2.25, 10 ** 2.5, 10 ** 2.75, 10 ** 3, 10 ** 3.25,
+                10 ** 3.5]
+    # PI_con = [10 ** 2]
     print 'Simulation Starts!\n'
     t1 = time.time()
     for Pi in PI_con:
@@ -78,7 +79,7 @@ if __name__ == '__main__':
         # Rate_list = []
         # for i in range(num_batch):
         #     Rate_list.append(rate_opt(Pi, C_BH, alg))
-        result_list = list(rate_opt([(Pi, C_BH,  alg )]* num_batch))
+        result_list = list(rate_opt([(Pi/N, C_BH,  alg )]* num_batch))
         Rate_list = [result_list[i][1] for i in range(0, num_batch)]
         sum_rate = sum(Rate_list)/num_batch
         sum_rate_list.append(sum_rate)
