@@ -48,7 +48,7 @@ def rate_opt(P_con,  C_BH,  alg = 'None'):
     capacity_bh = C_BH * log(P_con,2)
     sum_rate = 0
     if alg == 'DE':
-        opt_fun = lambda x: - Rate_CCF_CRAN(P_con, vector(RR, [1, ] + list(x[0:L - 1])), H, capacity_bh)
+        opt_fun = lambda x: - Rate_CCF_CRAN([P_con]*L, vector(RR, [1, ] + list(x[0:L - 1])), H, capacity_bh)
         bounds = ((0.1, betaScale_max), ) * (L-1)
         opt_res = optimize.differential_evolution(opt_fun, bounds, maxiter = 20, disp = False)
         sum_rate = -opt_res.fun
@@ -61,7 +61,7 @@ def rate_opt(P_con,  C_BH,  alg = 'None'):
 
 if __name__ == '__main__':
 
-    C_BH = 5
+    C_BH = 3
     alg = 'DE'
     num_batch = 200
     sum_rate_list = []
