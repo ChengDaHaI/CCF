@@ -39,7 +39,7 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
         # print 'H_b:', H_b
 
     #second hop channel capacity, 2**L-1 inequalities
-    rate_sec_hop=ComputeSecRate(M,P_relay,H_b)
+    rate_sec_hop=ComputeSecRate(M,100 * P_relay,H_b)
 
     # compute the cut-set bound
     R_cs = min(0.5 * np.log2((P_con * H_a * H_a.transpose() + diagonal_matrix(vector(RR, [1] * L))).determinant()),
@@ -81,41 +81,42 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
 
     t2=time.time()
     print 'CCF time cost: ', (t2 - t1)
-    
-    out_per_c_search = True
-    if out_per_c_search:
-        Max_New_sum_rate = 0
-        per_c_order_list = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7], [8, 8, 8]]
-        #per_c_order_list = list(itertools.permutations(list(range(0, L)), L)) + [[0, 0, 0],[1, 1, 1],[2, 2, 2],[3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7],[8, 8, 8]]
-        for code_order in itertools.permutations(list(range(0, L)), L):
-        #for code_order in per_c_order_list:
-            per_c = list(code_order) 
-            # print 'coding lattice permutation: ', per_c
-            tic = time.time()
-            (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
-            toc = time.time()
-            print 'toc - tic:', (toc - tic)
-            if Max_New_sum_rate < New_sum_rate_opt:
-                Max_New_sum_rate = copy.copy(New_sum_rate_opt) 
-        New_sum_rate_opt = copy.copy(Max_New_sum_rate)
 
-        #search sum rate in per_c_order_list
-        if False:
-            Max_New_sum_rate = 0
-            for per_c in per_c_order_list:
-                (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
-                if Max_New_sum_rate < GCCF_sum_rate_opt:
-                    Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
-            GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
-            #To output two kinds of sum rate, so we change the varible
-            sum_rate_opt = copy.copy(New_sum_rate_opt)
-            New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
-    else:
-        # per_c is assigned with the output of Opt_feasible_check()
-        print 'per_c = :\n', per_c
-        tic = time.time()
-        (beta_opt, New_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
-        toc = time.time()
+    New_sum_rate_opt = 0
+    # out_per_c_search = True
+    # if out_per_c_search:
+    #     Max_New_sum_rate = 0
+    #     per_c_order_list = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7], [8, 8, 8]]
+    #     #per_c_order_list = list(itertools.permutations(list(range(0, L)), L)) + [[0, 0, 0],[1, 1, 1],[2, 2, 2],[3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7],[8, 8, 8]]
+    #     for code_order in itertools.permutations(list(range(0, L)), L):
+    #     #for code_order in per_c_order_list:
+    #         per_c = list(code_order)
+    #         # print 'coding lattice permutation: ', per_c
+    #         tic = time.time()
+    #         (beta_opt, New_sum_rate_opt)=RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
+    #         toc = time.time()
+    #         print 'toc - tic:', (toc - tic)
+    #         if Max_New_sum_rate < New_sum_rate_opt:
+    #             Max_New_sum_rate = copy.copy(New_sum_rate_opt)
+    #     New_sum_rate_opt = copy.copy(Max_New_sum_rate)
+    #
+    #     #search sum rate in per_c_order_list
+    #     if False:
+    #         Max_New_sum_rate = 0
+    #         for per_c in per_c_order_list:
+    #             (beta_opt, GCCF_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
+    #             if Max_New_sum_rate < GCCF_sum_rate_opt:
+    #                 Max_New_sum_rate = copy.copy(GCCF_sum_rate_opt)
+    #         GCCF_sum_rate_opt = max(Max_New_sum_rate, New_sum_rate_opt)
+    #         #To output two kinds of sum rate, so we change the varible
+    #         sum_rate_opt = copy.copy(New_sum_rate_opt)
+    #         New_sum_rate_opt = copy.copy(GCCF_sum_rate_opt)
+    # else:
+    #     # per_c is assigned with the output of Opt_feasible_check()
+    #     print 'per_c = :\n', per_c
+    #     tic = time.time()
+    #     (beta_opt, New_sum_rate_opt) = RandomSearch(P_Search_Alg, H_a, rate_sec_hop, P_con, per_c)
+    #     toc = time.time()
         #print 'toc - tic:', (toc - tic)
     t3 = time.time()
     
@@ -132,8 +133,8 @@ def CCF_Model_Comparison(P_Search_Alg,P_con,P_relay):
     # if sum_rate_opt > 1.01 * New_sum_rate_opt:
     #     return 0, 0, 0, 0, 0, 0, 0
     # else:
-    return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), 1, better_flag, R_cs#1 is the flag of valid chanel realization.
-    
+    # return New_sum_rate_opt, sum_rate_opt, (t3-t2) ,(t2-t1), 1, better_flag, R_cs#1 is the flag of valid chanel realization.
+    return 0, sum_rate_opt,0,0,1,0,R_cs
     
 # chech the feasibility of optimal solution of originl CCF in the NEW CCF system
 # Input: beta_opt shoulde be L-1 beta factor when with fixed transimitter power
@@ -314,8 +315,8 @@ def Opt_feasible_check(beta_opt, sum_rate_opt, P_con, H_a, rate_sec_hop):
 
 if __name__=="__main__":
 
-    num_batch = 200
-    # num_batch = 50
+    # num_batch = 200
+    num_batch = 100
     sum_rate=[]
     New_sum_rate=[]
     sum_rate_cut_set = []
@@ -329,7 +330,7 @@ if __name__=="__main__":
     #PI_con = [10 ** 0, 10 ** 0.4, 10 ** 0.8,  10 ** 1.2,  10 ** 1.6,  10 ** 2.0]
     #PI_con = [10 ** 0, 10 ** 0.2, 10 ** 0.4, 10 ** 0.6, 10 ** 0.8, 10 ** 1.0, 10 ** 1.2, 10 ** 1.4, 10 ** 1.6, 10 ** 1.8, 10 ** 2.0]
     #PI_con=[10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0, 10**3.2, 10**3.4, 10**3.6, 10**3.8, 10**4.0]
-    PI_con = [10**2.3, 10**2.6]
+    PI_con = [10**2.0, 10**2.5]
     #PI_con = [10**1.0, 10**1.2, 10**1.4, 10**1.6, 10**1.8, 10**2.0, 10**2.2, 10**2.4, 10**2.6, 10**2.8, 10**3.0]
     #PI_con=[10**2.0, 10**2.3, 10**2.6, 10**2.9, 10**3.2, 10**3.5]
     print 'Simulation Starts!\n'
@@ -413,8 +414,8 @@ if __name__=="__main__":
             '''
             Saving raw simulation results
             '''
-            Result = np.column_stack((New_Rate_list, Rate_list))
-            np.savetxt('/home/landon/Pictures/Results/TxtFile/TempResults/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + 'dB = ' + (10*log10(Pi)).__str__() + time.ctime() + '_Result.txt', Result,fmt = '%1.5e')
+            # Result = np.column_stack((New_Rate_list, Rate_list))
+            # np.savetxt('/home/landon/Pictures/Results/TxtFile/TempResults/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + 'dB = ' + (10*log10(Pi)).__str__() + time.ctime() + '_Result.txt', Result,fmt = '%1.5e')
             
     t2=time.time()
     print 'Total Time Cost: ' ,(t2-t1)
@@ -426,7 +427,7 @@ if __name__=="__main__":
     PI_dB=[10*log10(P_con) for P_con in PI_con]
     Full_Result = np.column_stack((PI_dB, sum_rate, New_sum_rate,sum_rate_cut_set))
     if True:
-        np.savetxt('/home/landon/Pictures/Results/TxtFile/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + time.ctime() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
+        np.savetxt('/home/haizi/Pictures/Results/TxtFile/' + 'L=' + L.__str__() + 'iter = ' + num_batch.__str__() + time.ctime() + 'Full_Result.txt', Full_Result ,fmt = '%1.5e')
     
         plot_rate=list_plot(zip(PI_dB,sum_rate),plotjoined=True, marker='d', \
                                           rgbcolor=Color('blue'), linestyle='-.', \

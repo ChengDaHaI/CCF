@@ -13,6 +13,7 @@ import time
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
+from SSA_fading_channel_model import chanMatrix
 
 
 # Compute the sum rate of CCF in a MIMO C-RAN system
@@ -43,9 +44,13 @@ def rate_opt(P_con,  C_BH,  alg = 'None'):
 
     set_random_seed()
     # generate channel matrix with M*N rows and L*N columns
-    H = Matrix(RR, M, L,  lambda i, j: normalvariate(0, 1))
+    # H = Matrix(RR, M, L,  lambda i, j: normalvariate(0, 1))
+    # large scale fading channel
+    H = chanMatrix(3, 3, 2, 2) # 2 * 2 system with 3 antenna
+    H = Matrix(H )
     # BH capcaity
-    capacity_bh = C_BH * log(P_con,2)
+    # capacity_bh = C_BH * log(P_con,2)
+    capacity_bh = C_BH * K
     sum_rate = 0
     if alg == 'DE':
         opt_fun = lambda x: - Rate_CCF_CRAN([P_con]*L, vector(RR, [1, ] + list(x[0:L - 1])), H, capacity_bh)
@@ -61,25 +66,29 @@ def rate_opt(P_con,  C_BH,  alg = 'None'):
 
 if __name__ == '__main__':
 
-    C_BH = 3
+    # C_BH = 3
     alg = 'DE'
-    num_batch = 200
+    num_batch = 500
     sum_rate_list = []
     New_sum_rate = []
-    PI_con = [10 ** 1, 10 ** 1.25, 10 ** 1.5, 10 ** 1.75, 10 ** 2, 10 ** 2.25, 10 ** 2.5, 10 ** 2.75, 10 ** 3, 10 ** 3.25,
-                10 ** 3.5]
-    # PI_con = [10 ** 2]
+    # PI_con = [10 ** 1, 10 ** 1.25, 10 ** 1.5, 10 ** 1.75, 10 ** 2, 10 ** 2.25, 10 ** 2.5, 10 ** 2.75, 10 ** 3, 10 ** 3.25,
+    #             10 ** 3.5]
+    # PI_con = [ 10**3, 10**3.5,  1e4, 10**4.5, 10**5, 10**5.5, 10**6, 10**6.5,  1e7, 10**7.5, 10**8, 10**8.5, 10**9]
+    PI_con = [  1e7]
+    # Pow = 10 ** 2
+    # BH_list = [2, 4, 6, 8, 10, 12, 14, 16] # BH capacity per user
     print 'Simulation Starts!\n'
     t1 = time.time()
-    for Pi in PI_con:
-        print 'Transmitter Power:', Pi
+    for Pow in PI_con:
+        C_BH = 100 # set to be very large
+        print 'Transmitter Power:', Pow
         # the power of each antenna user is Pi/N
         # test_rate = rate_opt(Pi/N, C_BH, alg)
         # print 'Test'
         # Rate_list = []
         # for i in range(num_batch):
         #     Rate_list.append(rate_opt(Pi, C_BH, alg))
-        result_list = list(rate_opt([(Pi/N, C_BH,  alg )]* num_batch))
+        result_list = list(rate_opt([(Pow/N, C_BH,  alg )]* num_batch))
         Rate_list = [result_list[i][1] for i in range(0, num_batch)]
         sum_rate = sum(Rate_list)/num_batch
         sum_rate_list.append(sum_rate)
@@ -87,5 +96,6 @@ if __name__ == '__main__':
     print 'Total Time Cost: ', (t2 - t1)
     PI_dB = [10 * log10(P_con) for P_con in PI_con]
     Full_Result = np.column_stack((PI_dB, sum_rate_list))
+    print 'sum_rate_list:', sum_rate_list
     np.savetxt('/home/haizi/PycharmProjects/SSA/Simu_result/' + 'CCF_OPT' +' iter =' + num_batch.__str__() + ' K=' + K.__str__() + ' N=' + N.__str__() + time.ctime()
                + 'Simu_Data.txt', Full_Result, fmt='%1.5e')

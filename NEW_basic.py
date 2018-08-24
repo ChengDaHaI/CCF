@@ -1,7 +1,7 @@
 from sage.all import *
 
 N = 3 # number of antenna, used in SSA simulation
-K = 2 # number of user
+K = 2    # number of user
 L = N * K
 M = N * K
 p=17
@@ -13,7 +13,7 @@ p=17
 #P_con=1000
 k_P_ratio=0.25
 betaScale_max=4
-Cores = 30
+Cores = 20
 
 set_HaHb = False
 
